@@ -8,7 +8,7 @@
 import SwiftUI
 import AVFoundation
 
-extension View {    
+public extension View {    
     func responsiveCaptureEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
             configuration.responsiveCaptureEnabledIfPossible = enabled

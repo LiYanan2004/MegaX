@@ -8,7 +8,7 @@
 import SwiftUI
 import AVFoundation
 
-struct CameraView<S: View, P: View>: View {
+public struct CameraView<S: View, P: View>: View {
     @ViewBuilder var statusBar: S
     @ViewBuilder var photoAlbum: P
     
@@ -22,7 +22,7 @@ struct CameraView<S: View, P: View>: View {
     @State private var focusLocked = false
     @State private var toggleCameraTask: Task<Void, Error>?
     
-    init(
+    public init(
         onFinishCapture: @escaping (Data) -> Void,
         onPermissionDenied: (() -> Void)? = nil,
         @ViewBuilder statusBar: () -> S,
@@ -34,7 +34,7 @@ struct CameraView<S: View, P: View>: View {
         self.photoAlbum = photoAlbum()
     }
     
-    var body: some View {
+    public var body: some View {
         VStack(spacing: 12) {
             Color.clear
                 .frame(height: 32)
@@ -202,18 +202,6 @@ struct CameraView<S: View, P: View>: View {
             ).devices.first
             model.toggleCamera(to: videoDevice)
         }
-    }
-}
-
-extension CameraView where S == EmptyView, P == EmptyView {
-    init(
-        onFinishCapture: @escaping (Data) -> Void,
-        onPermissionDenied: (() -> Void)? = nil
-    ) {
-        self.onFinishCapture = onFinishCapture
-        self.onPermissionDenied = onPermissionDenied
-        self.statusBar = EmptyView()
-        self.photoAlbum = EmptyView()
     }
 }
 

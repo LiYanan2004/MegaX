@@ -7,8 +7,20 @@
 
 import SwiftUI
 
+extension CameraView where S == EmptyView, P == EmptyView {
+    public init(
+        onFinishCapture: @escaping (Data) -> Void,
+        onPermissionDenied: (() -> Void)? = nil
+    ) {
+        self.onFinishCapture = onFinishCapture
+        self.onPermissionDenied = onPermissionDenied
+        self.statusBar = EmptyView()
+        self.photoAlbum = EmptyView()
+    }
+}
+
 extension CameraView where S == EmptyView {
-    init(
+    public init(
         onFinishCapture: @escaping (Data) -> Void,
         onPermissionDenied: (() -> Void)? = nil,
         @ViewBuilder photoAlbum: () -> P
@@ -21,7 +33,7 @@ extension CameraView where S == EmptyView {
 }
 
 extension CameraView where P == EmptyView {
-    init(
+    public init(
         onFinishCapture: @escaping (Data) -> Void,
         onPermissionDenied: (() -> Void)? = nil,
         @ViewBuilder statusBar: () -> S

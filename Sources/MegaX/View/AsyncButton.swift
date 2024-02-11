@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct AsyncButton<L: View, P: View>: View {
+public struct AsyncButton<L: View, P: View>: View {
     var role: ButtonRole?
     var action: @Sendable () async -> Void
     @ViewBuilder var label: L
@@ -15,7 +15,7 @@ struct AsyncButton<L: View, P: View>: View {
     
     @State private var isProcessing = false
     
-    var body: some View {
+    public var body: some View {
         Button(role: role) {
             Task {
                 withAnimation(nil) {
@@ -40,7 +40,7 @@ struct AsyncButton<L: View, P: View>: View {
 }
 
 extension AsyncButton where P == ProgressView<EmptyView, EmptyView> {
-    init(
+    public init(
         role: ButtonRole? = nil,
         action: @escaping @Sendable () async -> Void,
         @ViewBuilder label: () -> L
@@ -54,7 +54,7 @@ extension AsyncButton where P == ProgressView<EmptyView, EmptyView> {
 }
 
 extension AsyncButton where L == Label<Text, Image>, P == ProgressView<EmptyView, EmptyView> {
-    init(
+    public init(
         role: ButtonRole? = nil,
         _ titleKey: LocalizedStringKey,
         systemImage: String,
@@ -67,7 +67,7 @@ extension AsyncButton where L == Label<Text, Image>, P == ProgressView<EmptyView
         }
     }
     
-    init(
+    public init(
         role: ButtonRole? = nil,
         _ title: String,
         systemImage: String,
@@ -80,7 +80,7 @@ extension AsyncButton where L == Label<Text, Image>, P == ProgressView<EmptyView
         }
     }
     
-    init(
+    public init(
         role: ButtonRole? = nil,
         _ titleKey: LocalizedStringKey,
         image: String,
@@ -93,7 +93,7 @@ extension AsyncButton where L == Label<Text, Image>, P == ProgressView<EmptyView
         }
     }
     
-    init(
+    public init(
         role: ButtonRole? = nil,
         _ title: String,
         image: String,
