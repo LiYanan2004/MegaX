@@ -91,9 +91,7 @@ public struct CameraView<S: View, P: View>: View {
                     }
                 }
                 .overlay(alignment: .bottom) {
-                    if configuration.autoSwitchingLens {
-                        CameraOpticalZoomOptionsBox().padding()
-                    }
+                    CameraOpticalZoomOptionsBox().padding()
                 }
                 .overlay {
                     Rectangle()

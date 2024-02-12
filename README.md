@@ -71,12 +71,8 @@ CameraView { photoData in
 If you want to customize the Camera, the available modifiers are
 
 - `autoDeferredPhotoDeliveryEnabled`
-
 - `zeroShutterLagEnabled`
-
 - `responsiveCaptureEnabled`
 - `fastCapturePrioritizationEnabled`
-
-- `autoSwitchingLensEnabled`
 - `captureWhenMultiTaskingEnabled`
 - `cameraStabilizationMode`

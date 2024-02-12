@@ -1,10 +1,10 @@
 import SwiftUI
 import AVFoundation
 
-public extension View {
+extension View {
     /// Enable auto deferred photo delivery if the device supports.
     /// - Returns: A view with the CameraView's auto deferred photo delivery enabled or disabled.
-    func autoDeferredPhotoDeliveryEnabled(_ enabled: Bool) -> some View {
+    public func autoDeferredPhotoDeliveryEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
             configuration.autoDeferredPhotoDeliveryEnabledIfPossible = enabled
         }
@@ -12,7 +12,7 @@ public extension View {
     
     /// Enable zero shutter lag if the device supports.
     /// - Returns: A view with the CameraView's zero shutter lag enabled or disabled.
-    func zeroShutterLagEnabled(_ enabled: Bool) -> some View {
+    public func zeroShutterLagEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
             configuration.zeroShutterLagEnabledIfPossible = enabled
         }
@@ -20,7 +20,7 @@ public extension View {
     
     /// Enable responsive capture if the device supports.
     /// - Returns: A view with the CameraView's responsive capture mode enabled or disabled.
-    func responsiveCaptureEnabled(_ enabled: Bool) -> some View {
+    public func responsiveCaptureEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
             configuration.responsiveCaptureEnabledIfPossible = enabled
         }
@@ -28,7 +28,7 @@ public extension View {
     
     /// Enable fast capture prioritization if the device supports.
     /// - Returns: A view with the CameraView's fast capture prioritization enabled or disabled.
-    func fastCapturePrioritizationEnabled(_ enabled: Bool) -> some View {
+    public func fastCapturePrioritizationEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
             configuration.fastCapturePrioritizationEnabledIfPossible = enabled
         }
@@ -44,7 +44,7 @@ public extension View {
     
     /// Enable multitasking camera access if the device supports.
     /// - Returns: A view with the CameraView's multitasking access enabled or disabled.
-    func captureWhenMultiTaskingEnabled(_ enabled: Bool) -> some View {
+    public func captureWhenMultiTaskingEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
             configuration.captureWhenMultiTasking = enabled
         }
@@ -52,7 +52,7 @@ public extension View {
     
     /// Sets prefered camera stabilization mode.
     /// - Returns: A view with the CameraView's prefered stabilization mode set.
-    func cameraStabilizationMode(_ mode: AVCaptureVideoStabilizationMode) -> some View {
+    public func cameraStabilizationMode(_ mode: AVCaptureVideoStabilizationMode) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
             configuration.stabilizationMode = mode
         }

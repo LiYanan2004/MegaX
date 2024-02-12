@@ -169,7 +169,11 @@ final class CameraModel: NSObject {
         }
     }
     
-    func setZoomFactor(_ zoomFactor: CGFloat, withRate rate: Float? = nil, animation: Animation? = .smooth(duration: 0.25)) {
+    func setZoomFactor(
+        _ zoomFactor: CGFloat,
+        withRate rate: Float? = nil,
+        animation: Animation? = .smooth(duration: 0.25)
+    ) {
         configureCaptureDevice { device in
             if device.isRampingVideoZoom {
                 device.cancelVideoZoomRamp()
@@ -298,8 +302,9 @@ final class CameraModel: NSObject {
             }
             
             guard !device.fallbackPrimaryConstituentDevices.isEmpty else { return }
+            let enabled = enabled ?? self.configuration.autoSwitchingLens
             device.setPrimaryConstituentDeviceSwitchingBehavior(
-                enabled ?? self.configuration.autoSwitchingLens ? .auto : .locked,
+                enabled ? .auto : .locked,
                 restrictedSwitchingBehaviorConditions: []
             )
         }
