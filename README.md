@@ -32,14 +32,14 @@ import MegaX
 
 @main
 struct MyCameraApp: App {
-  	// This is needed, or the orientation behavior may be wired.
-		@UIApplicationDelegateAdaptor(AppOrientationDelegate.self) private var delegate
-  
+    // This is needed, or the orientation behavior may be wired.
+    @UIApplicationDelegateAdaptor(AppOrientationDelegate.self) private var delegate
+
     var body: some Scene {
-				WindowGroup {
-						CameraView { photoCaptured in
-								print("photoData: \(photoCaptured)")
-						｝
+        WindowGroup {
+            CameraView { photoCaptured in
+                print("photoData: \(photoCaptured)")
+            ｝
         }
     }
 }
