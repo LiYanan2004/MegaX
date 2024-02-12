@@ -73,7 +73,6 @@ final class CameraModel: NSObject {
     func startSession() {
         sessionQueue.async { [self] in
             configureSession()
-            print(configuration)
             session.startRunning()
             Task { @MainActor in
                 self.sessionState = .running
