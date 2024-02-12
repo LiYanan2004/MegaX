@@ -7,10 +7,11 @@ import OSLog
 final class CameraModel: NSObject {
     // MARK: Custom delegates & configurations
     @ObservationIgnored var didFinishCapture: ((Data) -> Void)?
+    @ObservationIgnored var errorHandler: ((CameraError) -> Void)?
     @ObservationIgnored var configuration = CameraCaptureConfiguration()
     
     // MARK: UI states
-    var photoData: Data?
+    @MainActor var photoData: Data?
     var shutterDisabled = false
     var isBusyProcessing = false
     var dimCameraPreview = 0.0
@@ -35,7 +36,7 @@ final class CameraModel: NSObject {
     var isFrontCamera: Bool { cameraSide == .front }
     var isBackCamera: Bool { cameraSide == .back }
     
-    @ObservationIgnored private let logger = Logger()
+    @ObservationIgnored let logger = Logger()
     @ObservationIgnored let session = AVCaptureSession()
     @ObservationIgnored private var videoDeviceRotationCoordinator: AVCaptureDevice.RotationCoordinator!
     @ObservationIgnored private var videoRotationAngleForHorizonLevelPreviewObservation: NSKeyValueObservation?

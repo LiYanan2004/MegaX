@@ -7,8 +7,8 @@ public struct CameraView<S: View, P: View>: View {
     @ViewBuilder var photoAlbum: P
     
     // MARK: Custom Delegate
-    public var onFinishCapture: (Data) -> Void
-    public var onPermissionDenied: (() -> Void)?
+    var onFinishCapture: (Data) -> Void
+    var errorHandler: ((_ error: CameraError) -> Void)?
 
     // MARK: UI State
     @Environment(\._captureConfiguration) private var configuration
@@ -19,19 +19,19 @@ public struct CameraView<S: View, P: View>: View {
     /// Creates a CameraView with customized status bar and photo album button.
     /// - Parameters:
     ///     - onFinishCapture: Completion callback when captured a photo.
-    ///     - onPermissionDenied: Completion callback when user denied camera permission.
+    ///     - errorHandler: Callback when error occurred.
     ///     - statusBar: Customized status bar above camera preview.
     ///     - photoAlbum: Customized photo album button below camera preview, aligned with shutter button.
     ///
     /// When using CameraView, ``AppOrientationDelegate`` should be added to your `App` declaration via `@UIApplicationDelegateAdaptor` to get correct behavior.
     public init(
         onFinishCapture: @escaping (Data) -> Void,
-        onPermissionDenied: (() -> Void)? = nil,
+        errorHandler: ((CameraError) -> Void)? = nil,
         @ViewBuilder statusBar: @escaping (AVCaptureDevice) -> S,
         @ViewBuilder photoAlbum: () -> P
     ) {
         self.onFinishCapture = onFinishCapture
-        self.onPermissionDenied = onPermissionDenied
+        self.errorHandler = errorHandler
         self.statusBar = statusBar
         self.photoAlbum = photoAlbum()
     }
@@ -152,11 +152,12 @@ public struct CameraView<S: View, P: View>: View {
         .environment(\.colorScheme, .dark)
         .task {
             guard await model.grantedPermission else {
-                onPermissionDenied?()
+                errorHandler?(.permissionDenied)
                 return
             }
-            model.configuration = configuration
+            model.errorHandler = errorHandler
             model.didFinishCapture = onFinishCapture
+            model.configuration = configuration
             model.startSession()
         }
         .onChange(of: configuration) {
@@ -213,12 +214,19 @@ public struct CameraView<S: View, P: View>: View {
 
 #Preview {
     CameraView { photoData in
-        
-    } statusBar: { _ in
+        print("Captured photo data: \(photoData)")
+    } errorHandler: { error in
+        switch error {
+        case .captureError(let error):
+            print("Capture Error: \(error.localizedDescription)")
+        case .permissionDenied:
+            print("User denied camera permission")
+        }
+    } statusBar: { device in
         HStack {
             Image(systemName: "bolt.circle")
+                .symbolVariant(device.torchMode == .on ? .fill : .none)
             Spacer()
-            Image(systemName: "livephoto")
         }
         .imageScale(.large)
         .foregroundStyle(.white, .gray.opacity(0.5))
