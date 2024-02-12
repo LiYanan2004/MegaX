@@ -3,7 +3,7 @@ import AVFoundation
 
 /// A system-like Camera view experience.
 public struct CameraView<S: View, P: View>: View {
-    @ViewBuilder var statusBar: S
+    @ViewBuilder var statusBar: (AVCaptureDevice) -> S
     @ViewBuilder var photoAlbum: P
     
     // MARK: Custom Delegate
@@ -27,12 +27,12 @@ public struct CameraView<S: View, P: View>: View {
     public init(
         onFinishCapture: @escaping (Data) -> Void,
         onPermissionDenied: (() -> Void)? = nil,
-        @ViewBuilder statusBar: () -> S,
+        @ViewBuilder statusBar: @escaping (AVCaptureDevice) -> S,
         @ViewBuilder photoAlbum: () -> P
     ) {
         self.onFinishCapture = onFinishCapture
         self.onPermissionDenied = onPermissionDenied
-        self.statusBar = statusBar()
+        self.statusBar = statusBar
         self.photoAlbum = photoAlbum()
     }
     
@@ -40,7 +40,11 @@ public struct CameraView<S: View, P: View>: View {
         VStack(spacing: 12) {
             Color.clear
                 .frame(height: 32)
-                .overlay(statusBar)
+                .overlay {
+                    if let videoDevice = model.videoDevice {
+                        statusBar(videoDevice)
+                    }
+                }
                 .padding(.horizontal, 20)
             
             Text("AF/AE Locked")
@@ -210,7 +214,7 @@ public struct CameraView<S: View, P: View>: View {
 #Preview {
     CameraView { photoData in
         
-    } statusBar: {
+    } statusBar: { _ in
         HStack {
             Image(systemName: "bolt.circle")
             Spacer()

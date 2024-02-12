@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 extension CameraView where S == EmptyView, P == EmptyView {
     /// Creates a simple CameraView.
@@ -13,7 +14,7 @@ extension CameraView where S == EmptyView, P == EmptyView {
     ) {
         self.onFinishCapture = onFinishCapture
         self.onPermissionDenied = onPermissionDenied
-        self.statusBar = EmptyView()
+        self.statusBar = { _ in EmptyView() }
         self.photoAlbum = EmptyView()
     }
 }
@@ -33,7 +34,7 @@ extension CameraView where S == EmptyView {
     ) {
         self.onFinishCapture = onFinishCapture
         self.onPermissionDenied = onPermissionDenied
-        self.statusBar = EmptyView()
+        self.statusBar = { _ in EmptyView() }
         self.photoAlbum = photoAlbum()
     }
 }
@@ -49,11 +50,11 @@ extension CameraView where P == EmptyView {
     public init(
         onFinishCapture: @escaping (Data) -> Void,
         onPermissionDenied: (() -> Void)? = nil,
-        @ViewBuilder statusBar: () -> S
+        @ViewBuilder statusBar: @escaping (AVCaptureDevice) -> S
     ) {
         self.onFinishCapture = onFinishCapture
         self.onPermissionDenied = onPermissionDenied
-        self.statusBar = statusBar()
+        self.statusBar = statusBar
         self.photoAlbum = EmptyView()
     }
 }

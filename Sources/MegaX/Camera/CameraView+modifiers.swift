@@ -1,12 +1,12 @@
 import SwiftUI
 import AVFoundation
 
-public extension View { 
-    /// Enable responsive capture if the device supports.
-    /// - Returns: A view with the CameraView's responsive capture mode enabled or disabled.
-    func responsiveCaptureEnabled(_ enabled: Bool) -> some View {
+public extension View {
+    /// Enable auto deferred photo delivery if the device supports.
+    /// - Returns: A view with the CameraView's auto deferred photo delivery enabled or disabled.
+    func autoDeferredPhotoDeliveryEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
-            configuration.responsiveCaptureEnabledIfPossible = enabled
+            configuration.autoDeferredPhotoDeliveryEnabledIfPossible = enabled
         }
     }
     
@@ -18,11 +18,11 @@ public extension View {
         }
     }
     
-    /// Enable multitasking camera access if the device supports.
-    /// - Returns: A view with the CameraView's multitasking access enabled or disabled.
-    func captureWhenMultiTaskingEnabled(_ enabled: Bool) -> some View {
+    /// Enable responsive capture if the device supports.
+    /// - Returns: A view with the CameraView's responsive capture mode enabled or disabled.
+    func responsiveCaptureEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
-            configuration.captureWhenMultiTasking = enabled
+            configuration.responsiveCaptureEnabledIfPossible = enabled
         }
     }
     
@@ -33,21 +33,20 @@ public extension View {
             configuration.fastCapturePrioritizationEnabledIfPossible = enabled
         }
     }
-    
-    /// Enable auto deferred photo delivery if the device supports.
-    /// - Returns: A view with the CameraView's auto deferred photo delivery enabled or disabled.
-    func autoDeferredPhotoDeliveryEnabled(_ enabled: Bool) -> some View {
-        transformEnvironment(\._captureConfiguration) { configuration in
-            configuration.autoDeferredPhotoDeliveryEnabledIfPossible = enabled
-        }
-    }
-    
-    
+
     /// Enable auto lens switching behavior when capture device consists of multiple lens.
     /// - Returns: A view with the CameraView's auto lens switching mode enabled or disabled.
     func autoSwitchingLensEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
             configuration.autoSwitchingLens = enabled
+        }
+    }
+    
+    /// Enable multitasking camera access if the device supports.
+    /// - Returns: A view with the CameraView's multitasking access enabled or disabled.
+    func captureWhenMultiTaskingEnabled(_ enabled: Bool) -> some View {
+        transformEnvironment(\._captureConfiguration) { configuration in
+            configuration.captureWhenMultiTasking = enabled
         }
     }
     
