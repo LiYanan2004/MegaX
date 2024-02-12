@@ -243,7 +243,7 @@ final class CameraModel: NSObject {
         
         // Video device input
         let videoDevice = AVCaptureDevice.DiscoverySession(
-            deviceTypes: [.builtInTripleCamera, .builtInDualCamera, .builtInWideAngleCamera],
+            deviceTypes: [.builtInTripleCamera, .builtInDualCamera, .builtInDualWideCamera, .builtInWideAngleCamera],
             mediaType: .video,
             position: .back
         ).devices.first
@@ -393,7 +393,7 @@ final class CameraModel: NSObject {
     
     private func configureAvailableOpticalZoomsAndDefaultZoomsForCameras() {
         if let backCamera = AVCaptureDevice.DiscoverySession(
-            deviceTypes: [.builtInTripleCamera, .builtInDualCamera, .builtInWideAngleCamera],
+            deviceTypes: [.builtInTripleCamera, .builtInDualCamera, .builtInDualWideCamera, .builtInWideAngleCamera],
             mediaType: .video,
             position: .back
         ).devices.first {
@@ -421,7 +421,7 @@ final class CameraModel: NSObject {
         }
         
         if let frontCamera = AVCaptureDevice.DiscoverySession(
-            deviceTypes: [.builtInTripleCamera, .builtInDualCamera, .builtInWideAngleCamera],
+            deviceTypes: [.builtInTripleCamera, .builtInDualCamera, .builtInDualWideCamera, .builtInWideAngleCamera],
             mediaType: .video,
             position: .front
         ).devices.first {
