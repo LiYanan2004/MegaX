@@ -1,10 +1,3 @@
-//
-//  SpinningProgressViewStyle.swift
-//  Separate
-//
-//  Created by LiYanan2004 on 2024/2/5.
-//
-
 import SwiftUI
 
 struct SpinningProgressView: ProgressViewStyle {

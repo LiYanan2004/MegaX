@@ -1,13 +1,7 @@
-//
-//  CameraView.swift
-//  Separate
-//
-//  Created by LiYanan2004 on 2024/2/5.
-//
-
 import SwiftUI
 import AVFoundation
 
+/// A system-like Camera view experience.
 public struct CameraView<S: View, P: View>: View {
     @ViewBuilder var statusBar: S
     @ViewBuilder var photoAlbum: P
@@ -22,6 +16,14 @@ public struct CameraView<S: View, P: View>: View {
     @State private var focusLocked = false
     @State private var toggleCameraTask: Task<Void, Error>?
     
+    /// Creates a CameraView with customized status bar and photo album button.
+    /// - Parameters:
+    ///     - onFinishCapture: Completion callback when captured a photo.
+    ///     - onPermissionDenied: Completion callback when user denied camera permission.
+    ///     - statusBar: Customized status bar above camera preview.
+    ///     - photoAlbum: Customized photo album button below camera preview, aligned with shutter button.
+    ///
+    /// When using CameraView, ``AppOrientationDelegate`` should be added to your `App` declaration via `@UIApplicationDelegateAdaptor` to get correct behavior.
     public init(
         onFinishCapture: @escaping (Data) -> Void,
         onPermissionDenied: (() -> Void)? = nil,

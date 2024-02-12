@@ -1,10 +1,3 @@
-//
-//  CameraOpticalZoomOptionsBox.swift
-//  Separate
-//
-//  Created by LiYanan2004 on 2024/2/10.
-//
-
 import SwiftUI
 
 struct CameraOpticalZoomOptionsBox: View {

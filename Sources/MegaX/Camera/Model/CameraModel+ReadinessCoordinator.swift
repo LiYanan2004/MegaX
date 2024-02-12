@@ -1,10 +1,3 @@
-//
-//  CameraModel+ReadinessCoordinator.swift
-//  Separate
-//
-//  Created by LiYanan2004 on 2024/2/5.
-//
-
 import AVFoundation
 
 extension CameraModel: AVCapturePhotoOutputReadinessCoordinatorDelegate {

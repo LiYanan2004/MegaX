@@ -1,13 +1,9 @@
-//
-//  OrientationLock.swift
-//  Separate
-//
-//  Created by LiYanan2004 on 2024/2/6.
-//
-
 import SwiftUI
 
 #if os(iOS)
+/// An AppDelegate specifically focused on orientation management for application.
+///
+/// If you have implemented your own `AppDelegate`, you can inherit from ``AppOrientationDelegate``, and be sure not to override the implementations of ``AppOrientationDelegate``
 public class AppOrientationDelegate: NSObject, UIApplicationDelegate {
     static var defaultOrientation = UIInterfaceOrientationMask.allButUpsideDown
     static var orientationLock = UIInterfaceOrientationMask.allButUpsideDown
@@ -28,7 +24,9 @@ struct DefaultOrientationMask: PreferenceKey {
 }
 
 struct DeviceOrientationMask: PreferenceKey {
-    static var defaultValue: UIInterfaceOrientationMask { UIDevice.current.userInterfaceIdiom == .pad ? .all : .allButUpsideDown }
+    static var defaultValue: UIInterfaceOrientationMask {
+        UIDevice.current.userInterfaceIdiom == .pad ? .all : .allButUpsideDown
+    }
     
     static func reduce(value: inout UIInterfaceOrientationMask, nextValue: () -> UIInterfaceOrientationMask) {
         value = nextValue()

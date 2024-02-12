@@ -1,10 +1,3 @@
-//
-//  CameraFocusable.swift
-//  Separate
-//
-//  Created by LiYanan2004 on 2024/2/7.
-//
-
 import SwiftUI
 import AVFoundation
 

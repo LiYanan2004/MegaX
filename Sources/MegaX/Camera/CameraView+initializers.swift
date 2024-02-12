@@ -1,13 +1,12 @@
-//
-//  CameraView+initializers.swift
-//  Separate
-//
-//  Created by LiYanan2004 on 2024/2/11.
-//
-
 import SwiftUI
 
 extension CameraView where S == EmptyView, P == EmptyView {
+    /// Creates a simple CameraView.
+    /// - Parameters:
+    ///     - onFinishCapture: Completion callback when captured a photo.
+    ///     - onPermissionDenied: Completion callback when user denied camera permission.
+    ///
+    /// When using CameraView, ``AppOrientationDelegate`` should be added to your `App` declaration via `@UIApplicationDelegateAdaptor` to get correct behavior.
     public init(
         onFinishCapture: @escaping (Data) -> Void,
         onPermissionDenied: (() -> Void)? = nil
@@ -20,6 +19,13 @@ extension CameraView where S == EmptyView, P == EmptyView {
 }
 
 extension CameraView where S == EmptyView {
+    /// Creates a CameraView containing a customized status bar above the camera preview.
+    /// - Parameters:
+    ///     - onFinishCapture: Completion callback when captured a photo.
+    ///     - onPermissionDenied: Completion callback when user denied camera permission.
+    ///     - photoAlbum: Customized photo album button below camera preview, aligned with shutter button.
+    ///
+    /// When using CameraView, ``AppOrientationDelegate`` should be added to your `App` declaration via `@UIApplicationDelegateAdaptor` to get correct behavior.
     public init(
         onFinishCapture: @escaping (Data) -> Void,
         onPermissionDenied: (() -> Void)? = nil,
@@ -33,6 +39,13 @@ extension CameraView where S == EmptyView {
 }
 
 extension CameraView where P == EmptyView {
+    /// Creates a CameraView containing a customized photo album button at the leading edge below the camera preview, aligned with the shutter button.
+    /// - Parameters:
+    ///     - onFinishCapture: Completion callback when captured a photo.
+    ///     - onPermissionDenied: Completion callback when user denied camera permission.
+    ///     - statusBar: Customized status bar above camera preview.
+    ///
+    /// When using CameraView, ``AppOrientationDelegate`` should be added to your `App` declaration via `@UIApplicationDelegateAdaptor` to get correct behavior.
     public init(
         onFinishCapture: @escaping (Data) -> Void,
         onPermissionDenied: (() -> Void)? = nil,

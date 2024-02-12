@@ -1,10 +1,3 @@
-//
-//  CameraPreview.swift
-//  Separate
-//
-//  Created by LiYanan2004 on 2024/2/6.
-//
-
 import SwiftUI
 import AVFoundation
 
