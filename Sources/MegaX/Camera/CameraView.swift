@@ -39,7 +39,8 @@ public struct CameraView<S: View, P: View>: View {
     public var body: some View {
         VStack(spacing: 12) {
             Color.clear
-                .frame(height: 32)
+                .frame(maxHeight: 32)
+                .fixedSize()
                 .overlay {
                     if let videoDevice = model.videoDevice {
                         statusBar(videoDevice)
@@ -74,6 +75,7 @@ public struct CameraView<S: View, P: View>: View {
                 .opacity(1 - model.dimCameraPreview)
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .clipped()
+                .layoutPriority(1)
                 .overlay(alignment: .bottomLeading) {
                     if model.macroControlVisible {
                         Toggle(isOn: $model.autoSwitchToMacroLens) {
