@@ -67,21 +67,25 @@ public struct CameraView<S: View, P: View>: View {
                         .padding(.horizontal, 20)
                 }
                 
-                ViewThatFits(in: .vertical) {
-                    VStack(spacing: 12) {
-                        topItems
-                        captureItems
+                GeometryReader { proxy in
+                    let fullHeight = proxy.size.height + proxy.safeAreaInsets.top + proxy.safeAreaInsets.bottom
+                    if fullHeight < 700 {
+                        // For iPhone SE2
+                        ZStack(alignment: .top) {
+                            captureItems
+                            topItems
+                                .background(alignment: .top) {
+                                    Color.black.opacity(0.5)
+                                        .frame(height: 32)
+                                }
+                        }
+                        .ignoresSafeArea()
+                    } else {
+                        VStack(spacing: 12) {
+                            topItems
+                            captureItems
+                        }
                     }
-                    
-                    ZStack(alignment: .top) {
-                        captureItems
-                        topItems
-                            .background(alignment: .top) {
-                                Color.black.opacity(0.5)
-                                    .frame(height: 32)
-                            }
-                    }
-                    .ignoresSafeArea()
                 }
                 .frame(maxHeight: .infinity, alignment: .top)
             } else {
@@ -116,6 +120,12 @@ public struct CameraView<S: View, P: View>: View {
         }
         .deviceOrientation(isPhone ? .portrait : .all)
         .environment(model)
+        .sensoryFeedback(.selection, trigger: model.cameraSide)
+        .sensoryFeedback(
+            .selection,
+            trigger: model.dimCameraPreview,
+            condition: { $1 == 1 }
+        )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.black, ignoresSafeAreaEdges: .all)
         .environment(\.colorScheme, .dark)
