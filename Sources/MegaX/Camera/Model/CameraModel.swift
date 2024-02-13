@@ -42,7 +42,10 @@ final class CameraModel: NSObject {
     @ObservationIgnored private var videoRotationAngleForHorizonLevelPreviewObservation: NSKeyValueObservation?
     @ObservationIgnored private var videoRotationAngleForHorizonLevelCaptureObservation: NSKeyValueObservation?
     @MainActor var portaitLocked: Bool {
-        UIApplication.shared.supportedInterfaceOrientations(for: cameraPreview.preview.window) == .portrait
+        guard let currentWindowScene = UIApplication.shared.connectedScenes.first(
+            where: { $0.activationState == .foregroundActive }) as? UIWindowScene
+        else { return false }
+        return UIApplication.shared.delegate?.application?(UIApplication.shared, supportedInterfaceOrientationsFor: currentWindowScene.keyWindow) == .portrait
     }
     @MainActor @ObservationIgnored lazy var cameraPreview: CameraPreview = {
         CameraPreview(session: session)
