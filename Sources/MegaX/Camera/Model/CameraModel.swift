@@ -41,8 +41,11 @@ final class CameraModel: NSObject {
     @ObservationIgnored private var videoDeviceRotationCoordinator: AVCaptureDevice.RotationCoordinator!
     @ObservationIgnored private var videoRotationAngleForHorizonLevelPreviewObservation: NSKeyValueObservation?
     @ObservationIgnored private var videoRotationAngleForHorizonLevelCaptureObservation: NSKeyValueObservation?
+    @MainActor var portaitLocked: Bool {
+        UIApplication.shared.supportedInterfaceOrientations(for: cameraPreview.preview.window) == .portrait
+    }
     @MainActor @ObservationIgnored lazy var cameraPreview: CameraPreview = {
-       CameraPreview(session: session)
+        CameraPreview(session: session)
     }()
     @ObservationIgnored var videoDeviceInput: AVCaptureDeviceInput!
     @ObservationIgnored private var photoOutput = AVCapturePhotoOutput()
@@ -355,11 +358,15 @@ final class CameraModel: NSObject {
         
         videoRotationAngleForHorizonLevelCaptureObservation = videoDeviceRotationCoordinator.observe(\.videoRotationAngleForHorizonLevelCapture, options: .new) { _, change in
             guard let videoRotationAngleForHorizonLevelCapture = change.newValue else { return }
-            self.setInterfaceRotationAngle(videoRotationAngleForHorizonLevelCapture)
+            Task { @MainActor in
+                self.setInterfaceRotationAngle(videoRotationAngleForHorizonLevelCapture)
+            }
         }
     }
     
+    @MainActor
     private func setInterfaceRotationAngle(_ videoRotationAngleForHorizonLevelCapture: CGFloat) {
+        guard self.portaitLocked else { return }
         // We need to rotate element based on `videoRotationAngleForHorizonLevelCapture`
         var targetRotationAngle = Double(videoRotationAngleForHorizonLevelCapture)
         if targetRotationAngle >= 180 {

@@ -16,6 +16,13 @@ public struct CameraView<S: View, P: View>: View {
     @State private var focusLocked = false
     @State private var toggleCameraTask: Task<Void, Error>?
     
+    @Namespace private var CAM
+    @Environment(\.deviceType) private var deviceType
+    private var isPhone: Bool { deviceType == .phone }
+    @MainActor private var portaitLocked: Bool {
+        model.portaitLocked
+    }
+    
     /// Creates a CameraView with customized status bar and photo album button.
     /// - Parameters:
     ///     - onFinishCapture: Completion callback when captured a photo.
@@ -37,120 +44,83 @@ public struct CameraView<S: View, P: View>: View {
     }
     
     public var body: some View {
-        VStack(spacing: 12) {
-            Color.clear
-                .frame(maxHeight: 32)
-                .fixedSize()
-                .overlay {
-                    if let videoDevice = model.videoDevice {
-                        statusBar(videoDevice)
-                    }
+        Group {
+            if isPhone {
+                let topItems = VStack(spacing: 12) {
+                    statusBarSection
+                    AEAndAFLockedText
                 }
-                .padding(.horizontal, 20)
-            
-            Text("AF/AE Locked")
-                .font(.subheadline)
-                .padding(4)
-                .padding(.horizontal, 8)
-                .background(.yellow, in: .rect(cornerRadius: 5))
-                .foregroundStyle(.black)
-                .opacity(focusLocked ? 1 : 0)
-                .animation(.smooth, value: focusLocked)
-            
-            model.cameraPreview
-                .blur(radius: model.sessionState == .running ? 0 : 15, opaque: true)
-                #if targetEnvironment(simulator)
-                .overlay {
-                    Rectangle().fill(.fill)
-                }
-                #endif
-                .cameraPreviewFlip(trigger: model.cameraSide)
-                .rotation3DEffect(
-                    .degrees(model.sessionState == .running && model.isFrontCamera ? 180 : 0),
-                    axis: (x: 0.0, y: 1.0, z: 0.0),
-                    perspective: 0
-                )
-                .cameraFocusable(focusLocked: $focusLocked)
-                .cameraZoomFactor($model.zoomFactor)
-                .opacity(1 - model.dimCameraPreview)
-                .aspectRatio(3.0 / 4.0, contentMode: .fit)
-                .clipped()
-                .layoutPriority(1)
-                .overlay(alignment: .bottomLeading) {
-                    if model.macroControlVisible {
-                        Toggle(isOn: $model.autoSwitchToMacroLens) {
-                            Image(systemName: "camera.macro")
-                                .symbolVariant(.slash)
+                let captureItems = VStack(spacing: 12) {
+                    preview
+                        .aspectRatio(3 / 4, contentMode: .fit)
+                    photoText
+                        .padding(.vertical, 8)
+                    shutter
+                        .frame(maxWidth: .infinity)
+                        .overlay(alignment: .trailing) {
+                            cameraSwitchButton
                         }
-                        .toggleStyle(.button)
-                        .buttonStyle(.shutter)
-                        .padding(8)
-                        .background(.black.opacity(0.5), in: .circle)
-                        .padding(12)
-                        .transition(.opacity.animation(.easeInOut(duration: 0.3)))
+                        .overlay(alignment: .leading) {
+                            photoAlbum
+                                .rotationEffect(.degrees(model.interfaceRotationAngle))
+                        }
+                        .padding(.horizontal, 20)
+                }
+                
+                ViewThatFits(in: .vertical) {
+                    VStack(spacing: 12) {
+                        topItems
+                        captureItems
                     }
-                }
-                .overlay(alignment: .bottom) {
-                    CameraOpticalZoomOptionsBox().padding()
-                }
-                .overlay {
-                    Rectangle()
-                        .stroke(.secondary, lineWidth: 2)
-                        .mask {
-                            ZStack {
-                                Rectangle()
-                                    .frame(width: 28, height: 28)
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                                
-                                Rectangle()
-                                    .frame(width: 28, height: 28)
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                                
-                                Rectangle()
-                                    .frame(width: 28, height: 28)
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
-                                
-                                Rectangle()
-                                    .frame(width: 28, height: 28)
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                    
+                    ZStack(alignment: .top) {
+                        captureItems
+                        topItems
+                            .background(alignment: .top) {
+                                Color.black.opacity(0.5)
+                                    .frame(height: 32)
                             }
+                    }
+                    .ignoresSafeArea()
+                }
+                .frame(maxHeight: .infinity, alignment: .top)
+            } else {
+                preview
+                    .overlay(alignment: .top) {
+                        AEAndAFLockedText.padding(32)
+                    }
+                    .overlay(alignment: .trailing) {
+                        shutter
+                            .padding(.vertical, 40)
+                            .matchedGeometryEffect(id: "Shutter_top", in: CAM, properties: .position, anchor: .top)
+                            .matchedGeometryEffect(id: "Shutter_bottom", in: CAM, properties: .position, anchor: .bottom)
+                            .padding(.horizontal)
+                    }
+                    .overlay {
+                        VStack(spacing: 0) {
+                            statusBarSection
+                                .buttonStyle(.shutter)
+                            Color.clear.frame(height: 40)
+                            cameraSwitchButton
                         }
-                }
-            
-            Text("Photo")
-                .font(.subheadline)
-                .foregroundStyle(.yellow)
-               
-            shutter
-                .frame(maxWidth: .infinity)
-                .overlay(alignment: .trailing) {
-                    Button(
-                        "Switch Camera",
-                        systemImage: "arrow.triangle.2.circlepath",
-                        action: toggleCameraButtonClicked
-                    )
-                    .labelStyle(.iconOnly)
-                    .imageScale(.large)
-                    .padding(12)
-                    .background(.fill.tertiary, in: .circle)
-                    .buttonStyle(.shutter)
-                    .rotationEffect(.degrees(model.interfaceRotationAngle))
-                }
-                .overlay(alignment: .leading) {
-                    photoAlbum
-                        .rotationEffect(.degrees(model.interfaceRotationAngle))
-                }
-                .padding(.top, 20)
-                .padding(.horizontal, 20)
+                        .matchedGeometryEffect(id: "Shutter_top", in: CAM, properties: .position, anchor: .bottom, isSource: false)
+                        
+                        VStack(spacing: 40) {
+                            photoAlbum
+                            photoText
+                        }
+                        .matchedGeometryEffect(id: "Shutter_bottom", in: CAM, properties: .position, anchor: .top, isSource: false)
+                    }
+                    .ignoresSafeArea()
+            }
         }
-        .frame(maxHeight: .infinity, alignment: .top)
-        .padding(.bottom, 40)
-        .deviceOrientation(.portrait)
+        .deviceOrientation(isPhone ? .portrait : .all)
         .environment(model)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.black, ignoresSafeAreaEdges: .all)
         .environment(\.colorScheme, .dark)
         .task {
+            #if !targetEnvironment(simulator)
             guard await model.grantedPermission else {
                 errorHandler?(.permissionDenied)
                 return
@@ -159,6 +129,7 @@ public struct CameraView<S: View, P: View>: View {
             model.didFinishCapture = onFinishCapture
             model.configuration = configuration
             model.startSession()
+            #endif
         }
         .onChange(of: configuration) {
             model.updateSession(with: configuration)
@@ -166,29 +137,142 @@ public struct CameraView<S: View, P: View>: View {
         .onDisappear(perform: model.stopSession)
     }
     
-    private var shutter: some View {
-        Button {
-            model.capturePhoto()
-        } label: {
-            Circle()
-                .fill(.white)
-                .frame(width: 60, height: 60)
-                .opacity(model.isBusyProcessing ? 0 : 1)
-                .overlay {
-                    ProgressView()
-                        .progressViewStyle(.spinning)
-                        .scaleEffect(3)
-                        .foregroundStyle(.white)
-                        .opacity(model.isBusyProcessing ? 1 : 0)
+    private var statusBarSection: some View {
+        Color.clear
+            .frame(height: 32)
+            .overlay {
+                if let videoDevice = model.videoDevice {
+                    statusBar(videoDevice)            
+                        .padding(.horizontal, 20)
                 }
-        }
+            }
+    }
+    
+    private var AEAndAFLockedText: some View {
+        Text("AF/AE Locked")
+            .font(.subheadline)
+            .padding(4)
+            .padding(.horizontal, 8)
+            .background(.yellow, in: .rect(cornerRadius: 5))
+            .foregroundStyle(.black)
+            .opacity(focusLocked ? 1 : 0)
+            .animation(.smooth, value: focusLocked)
+    }
+    
+    @MainActor
+    private var preview: some View {
+        model.cameraPreview
+            .blur(radius: model.sessionState == .running ? 0 : 15, opaque: true)
+            #if targetEnvironment(simulator)
+            .overlay {
+                Rectangle().fill(.fill)
+            }
+            #endif
+            .cameraPreviewFlip(trigger: model.cameraSide)
+            .rotation3DEffect(
+                .degrees(model.sessionState == .running && model.isFrontCamera ? 180 : 0),
+                axis: (x: 0.0, y: 1.0, z: 0.0),
+                perspective: 0
+            )
+            .cameraFocusable(focusLocked: $focusLocked)
+            .cameraZoomFactor($model.zoomFactor)
+            .opacity(1 - model.dimCameraPreview)
+            .layoutPriority(1)
+            .overlay(alignment: .bottomLeading) {
+                if model.macroControlVisible {
+                    Toggle(isOn: $model.autoSwitchToMacroLens) {
+                        Image(systemName: "camera.macro")
+                            .symbolVariant(.slash)
+                    }
+                    .toggleStyle(.button)
+                    .buttonStyle(.shutter)
+                    .padding(8)
+                    .background(.black.opacity(0.5), in: .circle)
+                    .padding(12)
+                    .transition(.opacity.animation(.easeInOut(duration: 0.3)))
+                }
+            }
+            .overlay(alignment: isPhone ? .bottom : .leading) {
+                CameraOpticalZoomOptionsBox().padding()
+            }
+            .overlay {
+                Rectangle()
+                    .stroke(.secondary, lineWidth: 2)
+                    .mask {
+                        ZStack {
+                            Rectangle()
+                                .frame(width: 28, height: 28)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                            
+                            Rectangle()
+                                .frame(width: 28, height: 28)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                            
+                            Rectangle()
+                                .frame(width: 28, height: 28)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+                            
+                            Rectangle()
+                                .frame(width: 28, height: 28)
+                                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                        }
+                    }
+                    .opacity(isPhone ? 1 : 0)
+            }
+    }
+    
+    private var shutter: some View {
+        Rectangle()
+            .fill(.clear)
+            .aspectRatio(1, contentMode: .fit)
+            .frame(maxWidth: 72)
+            .overlay {
+                GeometryReader { proxy in
+                    Button {
+                        model.capturePhoto()
+                    } label: {
+                        Circle()
+                            .fill(.white)
+                            .opacity(model.isBusyProcessing ? 0 : 1)
+                            .overlay {
+                                ProgressView()
+                                    .progressViewStyle(.spinning)
+                                    .scaleEffect(proxy.size.width / 3.6)
+                                    .foregroundStyle(.black)
+                                    .opacity(model.isBusyProcessing ? 1 : 0)
+                            }
+                    }
+                    .buttonStyle(.shutter)
+                    .padding(6)
+                    .background {
+                        Circle()
+                            .strokeBorder(.white, lineWidth: 4)
+                    }
+                    .disabled(model.shutterDisabled)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+            }
+    }
+    
+    @MainActor
+    private var cameraSwitchButton: some View {
+        Button(
+            "Switch Camera",
+            systemImage: "arrow.triangle.2.circlepath",
+            action: toggleCameraButtonClicked
+        )
+        .labelStyle(.iconOnly)
+        .imageScale(.large)
+        .padding(12)
+        .background(.fill.tertiary, in: .circle)
         .buttonStyle(.shutter)
-        .background {
-            Circle()
-                .strokeBorder(.white, lineWidth: 4)
-                .frame(width: 72, height: 72)
-        }
-        .disabled(model.shutterDisabled)
+        .rotationEffect(.degrees(model.interfaceRotationAngle))
+    }
+    
+    private var photoText: some View {
+        Text("Photo")
+            .font(.subheadline)
+            .foregroundStyle(.yellow)
     }
     
     private func toggleCameraButtonClicked() {
@@ -223,14 +307,13 @@ public struct CameraView<S: View, P: View>: View {
             print("User denied camera permission")
         }
     } statusBar: { device in
-        HStack {
+        Button {
+            
+        } label: {
             Image(systemName: "bolt.circle")
                 .symbolVariant(device.torchMode == .on ? .fill : .none)
-            Spacer()
+                .foregroundStyle(.white, .gray.opacity(0.5))
         }
-        .imageScale(.large)
-        .foregroundStyle(.white, .gray.opacity(0.5))
-        .frame(maxWidth: .infinity)
     } photoAlbum: {
         RoundedRectangle(cornerRadius: 8)
             .foregroundStyle(.fill.tertiary)
