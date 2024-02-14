@@ -43,7 +43,7 @@ public struct CameraView<P: View>: View {
         Group {
             if isPhone {
                 let topItems = VStack(spacing: 12) {
-                    statusBarSection
+                    statusBar
                     AEAndAFLockedText
                 }
                 let captureItems = VStack(spacing: 12) {
@@ -98,8 +98,7 @@ public struct CameraView<P: View>: View {
                     }
                     .overlay {
                         VStack(spacing: 0) {
-                            statusBarSection
-                                .buttonStyle(.shutter)
+                            statusBar
                             Color.clear.frame(height: 40)
                             cameraSwitchButton
                         }
@@ -143,15 +142,22 @@ public struct CameraView<P: View>: View {
         .onDisappear(perform: model.stopSession)
     }
     
-    private var statusBarSection: some View {
-        Color.clear
-            .frame(height: 32)
-            .overlay {
-                HStack {
-                    
+    @ViewBuilder
+    private var statusBar: some View {
+        if isPhone {
+            Color.clear
+                .frame(height: 32)
+                .overlay(alignment: .leading) {
+                    FlashLightIndicator()
+                        .padding(.horizontal, 12)
                 }
-                .padding(.horizontal, 20)
-            }
+        } else {
+            Color.clear
+                .frame(maxHeight: .infinity)
+                .overlay(alignment: .bottom) {
+                    FlashLightIndicator()
+                }
+        }
     }
     
     private var AEAndAFLockedText: some View {
@@ -270,7 +276,10 @@ public struct CameraView<P: View>: View {
         .labelStyle(.iconOnly)
         .imageScale(.large)
         .padding(12)
-        .background(.fill.tertiary, in: .circle)
+        .background(
+            isPhone ? AnyShapeStyle(.fill.tertiary) : AnyShapeStyle(.black.tertiary),
+            in: .circle
+        )
         .buttonStyle(.shutter)
         .rotationEffect(.degrees(model.interfaceRotationAngle))
     }

@@ -51,10 +51,15 @@ final class CameraModel: NSObject {
         CameraPreview(session: session)
     }()
     @ObservationIgnored var videoDeviceInput: AVCaptureDeviceInput!
-    @ObservationIgnored private var photoOutput = AVCapturePhotoOutput()
+    @ObservationIgnored var photoOutput = AVCapturePhotoOutput()
+    @ObservationIgnored private var sceneMonitoring: NSKeyValueObservation?
     @ObservationIgnored private var readinessCoordinator: AVCapturePhotoOutputReadinessCoordinator!
     @ObservationIgnored private var sessionQueue = DispatchQueue(label: "com.liyanan2004.megax.sessionQueue")
     @ObservationIgnored var videoDevice: AVCaptureDevice? { videoDeviceInput?.device }
+    
+    // MARK: Flash Light
+    var flashLightCapable: Bool { videoDevice?.hasFlash ?? false }
+    var flashMode: AVCaptureDevice.FlashMode = .auto
     
     // MARK: Zoom Factors
     var zoomFactor: CGFloat = 1
@@ -317,7 +322,7 @@ final class CameraModel: NSObject {
         }
     }
     
-    private func configurePhotoOutput() {
+    private func configurePhotoOutput() {        
         photoOutput.maxPhotoQualityPrioritization = .quality
         
         let supportedMaxDimensions = self.videoDeviceInput.device.activeFormat.supportedMaxPhotoDimensions
@@ -340,6 +345,11 @@ final class CameraModel: NSObject {
     private func createPhotoSettings() -> AVCapturePhotoSettings {
         let photoSettings = AVCapturePhotoSettings()
         photoSettings.maxPhotoDimensions = self.photoOutput.maxPhotoDimensions
+        if photoOutput.supportedFlashModes.contains(flashMode) {
+            photoSettings.flashMode = flashMode
+        } else {
+            self.flashMode = .off
+        }
         if let previewPhotoPixelFormatType = photoSettings.availablePreviewPhotoPixelFormatTypes.first {
             photoSettings.previewPhotoFormat = [kCVPixelBufferPixelFormatTypeKey as String: previewPhotoPixelFormatType]
         }
