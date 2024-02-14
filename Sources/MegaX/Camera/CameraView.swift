@@ -323,7 +323,7 @@ public struct CameraView<P: View>: View {
         }
     } photoAlbum: {
         RoundedRectangle(cornerRadius: 8)
-            .foregroundStyle(.fill.tertiary)
+            .foregroundStyle(.fill.secondary)
             .aspectRatio(contentMode: .fit)
             .frame(height: 56)
     }

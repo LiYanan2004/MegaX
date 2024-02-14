@@ -50,19 +50,10 @@ You can also add a custom status bar and a photo album button.
 ```swift
 CameraView { photoData in
     print("Photo Captured")
-} statusBar: { captureDevice in
-    // Represent current camera state like torch mode etc
-    HStack {
-        Image(systemName: "bolt.circle")
-        Spacer()
-    }
-    .imageScale(.large)
-    .foregroundStyle(.white, .gray.opacity(0.5))
-    .frame(maxWidth: .infinity)
 } photoAlbum: {
     // A custom album button to display the lastest captured photo
     RoundedRectangle(cornerRadius: 8)
-        .foregroundStyle(.fill.tertiary)
+        .foregroundStyle(.fill.secondary)
         .aspectRatio(contentMode: .fit)
         .frame(height: 56)
 }
