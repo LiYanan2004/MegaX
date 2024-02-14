@@ -2,8 +2,7 @@ import SwiftUI
 import AVFoundation
 
 /// A system-like Camera view experience.
-public struct CameraView<S: View, P: View>: View {
-    @ViewBuilder var statusBar: (AVCaptureDevice) -> S
+public struct CameraView<P: View>: View {
     @ViewBuilder var photoAlbum: P
     
     // MARK: Custom Delegate
@@ -27,19 +26,16 @@ public struct CameraView<S: View, P: View>: View {
     /// - Parameters:
     ///     - onFinishCapture: Completion callback when captured a photo.
     ///     - errorHandler: Callback when error occurred.
-    ///     - statusBar: Customized status bar above camera preview.
     ///     - photoAlbum: Customized photo album button below camera preview, aligned with shutter button.
     ///
     /// When using CameraView, ``AppOrientationDelegate`` should be added to your `App` declaration via `@UIApplicationDelegateAdaptor` to get correct behavior.
     public init(
         onFinishCapture: @escaping (Data) -> Void,
         errorHandler: ((CameraError) -> Void)? = nil,
-        @ViewBuilder statusBar: @escaping (AVCaptureDevice) -> S,
         @ViewBuilder photoAlbum: () -> P
     ) {
         self.onFinishCapture = onFinishCapture
         self.errorHandler = errorHandler
-        self.statusBar = statusBar
         self.photoAlbum = photoAlbum()
     }
     
@@ -151,10 +147,10 @@ public struct CameraView<S: View, P: View>: View {
         Color.clear
             .frame(height: 32)
             .overlay {
-                if let videoDevice = model.videoDevice {
-                    statusBar(videoDevice)            
-                        .padding(.horizontal, 20)
+                HStack {
+                    
                 }
+                .padding(.horizontal, 20)
             }
     }
     
@@ -315,14 +311,6 @@ public struct CameraView<S: View, P: View>: View {
             print("Capture Error: \(error.localizedDescription)")
         case .permissionDenied:
             print("User denied camera permission")
-        }
-    } statusBar: { device in
-        Button {
-            
-        } label: {
-            Image(systemName: "bolt.circle")
-                .symbolVariant(device.torchMode == .on ? .fill : .none)
-                .foregroundStyle(.white, .gray.opacity(0.5))
         }
     } photoAlbum: {
         RoundedRectangle(cornerRadius: 8)
