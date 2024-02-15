@@ -67,3 +67,22 @@ If you want to customize the Camera, the available modifiers are
 - `fastCapturePrioritizationEnabled`
 - `captureWhenMultiTaskingEnabled`
 - `cameraStabilizationMode`
+
+## Backdrop Blur
+
+High performance backdrop blur layer with just one line of code.
+
+```swift
+YourView()
+    .backdropBlur(smoothEdges: .bottom)
+```
+
+## Extensions for SwiftUI
+
+### `if-else` modifier
+
+Creating conditional modifier just like writing normal code.
+
+But be careful when using this extension modifier because it might lead to poor performance and unexpected behavior.
+
+Use this modifier **only when the condition value will not change through the view's lifecycle**, like using `DeviceType` to add platform specific adjustments.

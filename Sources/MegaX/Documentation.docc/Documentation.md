@@ -26,7 +26,7 @@ MegaX is a powerful tool set providing developers with many useful views and mod
 
 ### Backdrop Blur Effect
 
-- ``SwiftUI/View/transparentBackgroundBlurEffect(_:smoothEdges:)``
+- ``SwiftUI/View/backdropBlur(_:smoothEdges:)``
 - ``LayerTransparency``
 
 ### Get Device Type
