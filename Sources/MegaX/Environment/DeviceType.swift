@@ -49,6 +49,10 @@ struct DeviceTypeEnvironmentKey: EnvironmentKey {
 extension EnvironmentValues {
     /// The type of current device.
     ///
+    /// You get this value through `@Environment(\.deviceType) var deviceType`.
+    ///
+    /// The value of this property is get-only.
+    ///
     /// The app natively to the macOS or using Catalyst typically using different layout strategy,
     /// so `DeviceType.mac` and `DeviceType.macCatalyst` are two different targets.
     public var deviceType: DeviceType {
