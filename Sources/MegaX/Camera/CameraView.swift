@@ -49,6 +49,7 @@ public struct CameraView<P: View>: View {
                 let captureItems = VStack(spacing: 12) {
                     preview
                         .aspectRatio(3 / 4, contentMode: .fit)
+                        .clipped()
                     photoText
                         .padding(.vertical, 8)
                     shutter

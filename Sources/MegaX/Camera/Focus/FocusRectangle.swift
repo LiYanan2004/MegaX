@@ -12,84 +12,176 @@ struct FocusRectangle: View {
     }
     var focusMode: FocusMode
     
+    enum ExposureBiasSide: Sendable, Equatable {
+        case left, right
+        var alignment: Alignment {
+            switch self {
+            case .left: .leading
+            case .right: .trailing
+            }
+        }
+    }
+    @State private var exposureBiasSide = ExposureBiasSide.right
+    @State private var isUnlocked = false
+    @State private var exposureY = CGFloat.zero
+    @State private var lastExposureY = CGFloat.zero
+    
     @State private var currentPhase: FocusRectanglePhase?
     private var opacity: Double { (currentPhase ?? .invisibleLarge).opacity }
     private var scale: CGFloat { (currentPhase ?? .invisibleLarge).scale }
     
     @State private var focusTrackingTask: Task<Void, Error>?
+    @State private var idleTimer: Task<Void, Error>?
     @Environment(CameraModel.self) private var model
     
     var body: some View {
         Rectangle()
             .stroke(.yellow, lineWidth: 1)
             .overlay {
-                GeometryReader { proxy in
-                    Rectangle()
-                        .fill(.yellow)
-                        .frame(width: 1)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .mask {
-                            VStack {
-                                Color.black.frame(height: 5)
-                                Spacer()
-                                Color.black.frame(height: 5)
-                            }
+                Rectangle()
+                    .fill(.yellow)
+                    .frame(width: 1)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .mask {
+                        VStack {
+                            Color.black.frame(height: 5)
+                            Spacer()
+                            Color.black.frame(height: 5)
                         }
-                }
+                    }
             }
             .overlay {
-                GeometryReader { proxy in
-                    Rectangle()
-                        .fill(.yellow)
-                        .frame(height: 1)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .mask {
-                            HStack {
-                                Color.black.frame(width: 5)
-                                Spacer()
-                                Color.black.frame(width: 5)
-                            }
+                Rectangle()
+                    .fill(.yellow)
+                    .frame(height: 1)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .mask {
+                        HStack {
+                            Color.black.frame(width: 5)
+                            Spacer()
+                            Color.black.frame(width: 5)
                         }
-                }
+                    }
             }
             .aspectRatio(1, contentMode: .fit)
+            .overlay(alignment: exposureBiasSide.alignment) {
+                if focusMode != .autoFocus {
+                    exposureSlider
+                }
+            }
             .environment(\.colorScheme, .dark)
             .opacity(opacity)
             .scaleEffect(scale)
-            .onAppear {
-                switch focusMode {
-                case .autoFocus, .manualFocus:
-                    withAnimation(.snappy(duration: 0.35)) {
-                        currentPhase = .normal
-                    } completion: {
-                        withAnimation(.easeInOut(duration: 0.2).repeatForever()) {
-                            currentPhase = .dimmed
+            .overlay {
+                GeometryReader { proxy in
+                    Color.black
+                        .padding(-32)
+                        .opacity(0.001)
+                        .onAppear {
+                            let previewWidth = proxy.bounds(of: .named("PREVIEW"))!.size.width
+                            let trailingEdgeX = proxy.frame(in: .named("PREVIEW")).maxX
+                            if trailingEdgeX + 36 > previewWidth {
+                                self.exposureBiasSide = .left
+                            }
                         }
-                    }
-                case .manualFocusLocking:
-                    currentPhase = .invisibleLarge
-                    withAnimation(.linear(duration: 0.2).repeatCount(2)) {
-                        currentPhase = .visibleLarge
-                    } completion: {
-                        guard self.currentPhase != .normal else { return }
-                        currentPhase = .visibleExtraLarge
-                        withAnimation(.linear(duration: 0.2).repeatCount(2, autoreverses: false)) {
-                            currentPhase = .visibleLarge
-                        }
-                    }
-                case .manualFocusLocked: break
                 }
-                
-                #if !targetEnvironment(simulator)
-                focusTrackingTask = Task.detached(operation: trackFocusState)
-                #endif
+                .gesture(exposureAdjustmentGesture)
             }
+            .onAppear(perform: scheduleAnimation)
             .onDisappear { focusTrackingTask?.cancel() }
             .onChange(of: focusMode) {
                 focusTrackingTask?.cancel()
                 withAnimation(.smooth(duration: 0.25)) {
                     currentPhase = .normal
                 }
+            }
+    }
+    
+    private var exposureSlider: some View {
+        Canvas { context, size in
+            context.translateBy(x: size.width / 2, y: 0)
+            
+            let sliderRect = CGRect(origin: .zero, size: CGSize(width: 1, height: size.height))
+            context.fill(Rectangle().path(in: sliderRect), with: .color(.yellow))
+            
+            context.blendMode = .clear
+            
+            let sunOrigin = CGPoint(x: -16, y: size.height / 2 - 16 + exposureY)
+            let sunSize = CGSize(width: 32, height: 32)
+            let sunRect = CGRect(origin: sunOrigin, size: sunSize)
+            context.fill(Circle().path(in: sunRect), with: .color(.black))
+            if let sun = context.resolveSymbol(id: "sun") {
+                context.draw(sun, at: CGPoint(x: 0, y: size.height / 2 + exposureY))
+            }
+        } symbols: {
+            Image(systemName: "sun.max.fill")
+                .resizable()
+                .frame(width: 24, height: 24)
+                .fontWeight(.thin)
+                .tag("sun")
+        }
+        .frame(width: 24)
+        .padding(.vertical, -16)
+        .offset(x: exposureBiasSide == .right ? 32 : -32)
+        .foregroundStyle(.yellow)
+    }
+    
+    private func scheduleAnimation() {
+        switch focusMode {
+        case .autoFocus, .manualFocus:
+            withAnimation(.snappy(duration: 0.35)) {
+                currentPhase = .normal
+            } completion: {
+                withAnimation(.easeInOut(duration: 0.2).repeatForever()) {
+                    currentPhase = .dimmed
+                }
+            }
+        case .manualFocusLocking:
+            currentPhase = .invisibleLarge
+            withAnimation(.linear(duration: 0.2).repeatCount(2)) {
+                currentPhase = .visibleLarge
+            } completion: {
+                guard self.currentPhase != .normal else { return }
+                currentPhase = .visibleExtraLarge
+                withAnimation(.linear(duration: 0.2).repeatCount(2, autoreverses: false)) {
+                    currentPhase = .visibleLarge
+                }
+            }
+        case .manualFocusLocked: break
+        }
+        
+        #if !targetEnvironment(simulator)
+        focusTrackingTask = Task.detached(operation: trackFocusState)
+        #endif
+    }
+    
+    private var exposureAdjustmentGesture: some Gesture {
+        DragGesture()
+            .map { $0.translation.height * 0.1 }
+            .onChanged {
+                idleTimer?.cancel()
+                currentPhase = .normal
+                do {
+                    guard let device = model.videoDevice else { return }
+                    if !isUnlocked {
+                        try device.lockForConfiguration()
+                        self.isUnlocked = true
+                    }
+                    self.exposureY = max(-37.5, min(37.5, self.lastExposureY + $0))
+                    let ev = -self.exposureY / 37.5 * 3.0
+                    device.exposureMode = .autoExpose
+                    device.setExposureTargetBias(Float(ev))
+                } catch {
+                    print("Cannot lock device for configuration: \(error.localizedDescription)")
+                }
+            }
+            .onEnded { _ in
+                updateFocusRectangle()
+                if let device = model.videoDevice {
+                    device.unlockForConfiguration()
+                }
+                self.isUnlocked = false
+                self.lastExposureY = self.exposureY
             }
     }
     
@@ -147,8 +239,9 @@ struct FocusRectangle: View {
             currentPhase = .normal
         } completion: {
             guard focusMode == .manualFocus else { return }
-            Task {
+            idleTimer = Task {
                 try? await Task.sleep(for: .seconds(2))
+                try Task.checkCancellation()
                 withAnimation(.easeInOut(duration: 0.2)) {
                     currentPhase = .idle
                 }

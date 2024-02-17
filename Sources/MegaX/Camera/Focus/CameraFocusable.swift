@@ -21,10 +21,12 @@ struct CameraFocusable: ViewModifier {
         content
             .overlay {
                 if let manualFocusRectanglePosition {
-                    FocusRectangle(focusMode: manualFocusMode)
-                        .frame(width: 75, height: 75)
-                        .position(manualFocusRectanglePosition)
-                        .id("focus rectangle at (\(manualFocusRectanglePosition.x), \(manualFocusRectanglePosition.y))")
+                    GeometryReader { previewProxy in
+                        FocusRectangle(focusMode: manualFocusMode)
+                            .frame(width: 75, height: 75)
+                            .position(manualFocusRectanglePosition)
+                            .id("focus rectangle at (\(manualFocusRectanglePosition.x), \(manualFocusRectanglePosition.y))")
+                    }
                 }
             }
             .overlay {
@@ -33,8 +35,9 @@ struct CameraFocusable: ViewModifier {
                         .frame(width: 125, height: 125)
                 }
             }
-            .simultaneousGesture(autoFocusGesture)
-            .simultaneousGesture(lockFocusGesture)
+            .coordinateSpace(.named("PREVIEW"))
+            .gesture(autoFocusGesture)
+            .gesture(lockFocusGesture)
             .onChange(of: isTouching) {
                 if isTouching == false && manualFocusMode == .manualFocusLocking {
                     manualFocusMode = .manualFocusLocked
@@ -44,6 +47,7 @@ struct CameraFocusable: ViewModifier {
                 model.configureCaptureDevice { device in
                     device.focusMode = .continuousAutoFocus
                     device.exposureMode = .continuousAutoExposure
+                    device.setExposureTargetBias(.zero)
                     device.isSubjectAreaChangeMonitoringEnabled = false
                 }
                 manualFocusRectanglePosition = nil

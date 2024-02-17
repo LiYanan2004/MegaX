@@ -214,6 +214,7 @@ final class CameraModel: NSObject {
                 device.focusMode = focusMode
             }
             
+            device.setExposureTargetBias(Float.zero)
             device.exposurePointOfInterest = pointOfInterst
             if device.isExposureModeSupported(exposureMode) {
                 device.exposureMode = exposureMode
