@@ -8,7 +8,7 @@ extension View {
     ///     - smoothEdges: A set of edges to apply opaque to transparent mask to better fits the content.
     ///
     /// You can have more blur by using `.ultra`.
-    public func backdropBlur(_ transparency: LayerTransparency = .normal, smoothEdges: Edge.Set = .all) -> some View {
+    public func backdropBlur(_ transparency: LayerTransparency = .normal, smoothEdges: Edge.Set = []) -> some View {
         modifier(BackdropBlurLayerModifier(transparency: transparency, smoothEdges: smoothEdges))
     }
 }
