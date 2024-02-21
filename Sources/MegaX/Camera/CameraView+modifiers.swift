@@ -50,11 +50,14 @@ extension View {
         }
     }
     
+    @available(macOS, unavailable)
     /// Sets prefered camera stabilization mode.
     /// - Returns: A view with the CameraView's prefered stabilization mode set.
     public func cameraStabilizationMode(_ mode: AVCaptureVideoStabilizationMode) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
+            #if os(iOS)
             configuration.stabilizationMode = mode
+            #endif
         }
     }
 }

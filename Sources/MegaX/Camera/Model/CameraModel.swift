@@ -3,6 +3,7 @@ import Observation
 import AVFoundation
 import OSLog
 
+@available(macOS, unavailable)
 @Observable
 final class CameraModel: NSObject {
     // MARK: Custom delegates & configurations
@@ -42,10 +43,14 @@ final class CameraModel: NSObject {
     @ObservationIgnored private var videoRotationAngleForHorizonLevelPreviewObservation: NSKeyValueObservation?
     @ObservationIgnored private var videoRotationAngleForHorizonLevelCaptureObservation: NSKeyValueObservation?
     @MainActor var portaitLocked: Bool {
+        #if os(iOS)
         guard let currentWindowScene = UIApplication.shared.connectedScenes.first(
             where: { $0.activationState == .foregroundActive }) as? UIWindowScene
         else { return false }
         return UIApplication.shared.delegate?.application?(UIApplication.shared, supportedInterfaceOrientationsFor: currentWindowScene.keyWindow) == .portrait
+        #else
+        false
+        #endif
     }
     @MainActor @ObservationIgnored lazy var cameraPreview: CameraPreview = {
         CameraPreview(session: session)
@@ -470,9 +475,11 @@ final class CameraModel: NSObject {
     }
     
     private func configurePreferedStabilizationMode() {
+        #if os(iOS)
         for connection in session.connections {
             guard connection.isVideoStabilizationSupported else { continue }
             connection.preferredVideoStabilizationMode = configuration.stabilizationMode
         }
+        #endif
     }
 }

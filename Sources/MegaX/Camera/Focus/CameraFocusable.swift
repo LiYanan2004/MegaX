@@ -2,11 +2,13 @@ import SwiftUI
 import AVFoundation
 
 extension View {
+    @available(macOS, unavailable)
     func cameraFocusable(focusLocked: Binding<Bool>) -> some View {
         modifier(CameraFocusable(focusLocked: focusLocked))
     }
 }
 
+@available(macOS, unavailable)
 @MainActor
 struct CameraFocusable: ViewModifier {
     @Binding var focusLocked: Bool

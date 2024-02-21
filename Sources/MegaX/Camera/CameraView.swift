@@ -1,6 +1,7 @@
 import SwiftUI
 import AVFoundation
 
+@available(macOS, unavailable)
 /// A system-like Camera view experience.
 public struct CameraView<P: View>: View {
     @ViewBuilder var photoAlbum: P
@@ -114,7 +115,9 @@ public struct CameraView<P: View>: View {
                     .ignoresSafeArea()
             }
         }
+        #if os(iOS)
         .deviceOrientation(isPhone ? .portrait : .all)
+        #endif
         .environment(model)
         .sensoryFeedback(.selection, trigger: model.cameraSide)
         .sensoryFeedback(
@@ -312,6 +315,7 @@ public struct CameraView<P: View>: View {
     }
 }
 
+#if !os(macOS)
 #Preview {
     CameraView { photoData in
         print("Captured photo data: \(photoData)")
@@ -329,3 +333,4 @@ public struct CameraView<P: View>: View {
             .frame(height: 56)
     }
 }
+#endif
