@@ -8,7 +8,10 @@ extension View {
     ///     - smoothEdges: A set of edges to apply opaque to transparent mask to better fits the content.
     ///
     /// You can have more blur by using `.ultra`.
-    public func backdropBlur(_ transparency: LayerTransparency = .normal, smoothEdges: Edge.Set = []) -> some View {
+    public func backdropBlur(
+        _ transparency: LayerTransparency = .normal,
+        smoothEdges: Edge.Set = []
+    ) -> some View {
         modifier(BackdropBlurLayerModifier(transparency: transparency, smoothEdges: smoothEdges))
     }
 }
@@ -56,27 +59,63 @@ struct BackdropBlurLayer: View {
             .blur(radius: transparency.blurRadius, opaque: true)
             .compositingGroup()
             // Smooth edges
-            // This part of code is a little bit ugly.
-            // But it just work. Fine.
+            .padding(smoothEdges.isEmpty ? 0 : -12)
             .mask {
                 Canvas { context, size in
                     context.fill(Rectangle().path(in: CGRect(origin: .zero, size: size)), with: .color(.black))
                     context.blendMode = .sourceIn
                     
+                    let gradient = Gradient(colors: [.clear, .black])
                     if smoothEdges.contains(.top) {
-                        context.fill(Rectangle().path(in: CGRect(origin: .zero, size: CGSize(width: size.width, height: size.height / 5))), with: .linearGradient(Gradient(colors: [.clear, .black]), startPoint: CGPoint(x: size.width / 2, y: 0), endPoint: CGPoint(x: size.width / 2, y: size.height / 5)))
+                        let rect = CGRect(origin: .zero, size: CGSize(width: size.width, height: 12))
+                        context.fill(
+                            Rectangle().path(in: rect),
+                            with: .linearGradient(
+                                gradient,
+                                startPoint: CGPoint(x: size.width / 2, y: 0),
+                                endPoint: CGPoint(x: size.width / 2, y: 12))
+                        )
                     }
-                    
                     if smoothEdges.contains(.bottom) {
-                        context.fill(Rectangle().path(in: CGRect(origin: CGPoint(x: 0, y: size.height - size.height / 5), size: CGSize(width: size.width, height: size.height / 5))), with: .linearGradient(Gradient(colors: [.clear, .black]), startPoint: CGPoint(x: size.width / 2, y: size.height), endPoint: CGPoint(x: size.width / 2, y: size.height - size.height / 5)))
+                        let rect = CGRect(
+                            origin: CGPoint(x: 0, y: size.height - 12),
+                            size: CGSize(width: size.width, height: 12)
+                        )
+                        context.fill(
+                            Rectangle().path(in: rect),
+                            with: .linearGradient(
+                                gradient,
+                                startPoint: CGPoint(x: size.width / 2, y: size.height),
+                                endPoint: CGPoint(x: size.width / 2, y: size.height - 12))
+                        )
                     }
                     
                     if smoothEdges.contains(.leading) {
-                        context.fill(Rectangle().path(in: CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: size.width / 5, height: size.height))), with: .linearGradient(Gradient(colors: [.clear, .black]), startPoint: CGPoint(x: 0, y: size.height / 2), endPoint: CGPoint(x: size.width / 5, y: size.height / 2)))
+                        let rect = CGRect(
+                            origin: .zero,
+                            size: CGSize(width: 12, height: size.height)
+                        )
+                        context.fill(
+                            Rectangle().path(in: rect),
+                            with: .linearGradient(
+                                gradient,
+                                startPoint: CGPoint(x: 0, y: size.height / 2),
+                                endPoint: CGPoint(x: 12, y: size.height / 2))
+                        )
                     }
                     
                     if smoothEdges.contains(.trailing) {
-                        context.fill(Rectangle().path(in: CGRect(origin: CGPoint(x: size.width * 4 / 5, y: 0), size: CGSize(width: size.width / 5, height: size.height))), with: .linearGradient(Gradient(colors: [.clear, .black]), startPoint: CGPoint(x: size.width, y: size.height / 2), endPoint: CGPoint(x: size.width * 4 / 5, y: size.height / 2)))
+                        let rect = CGRect(
+                            origin: CGPoint(x: size.width - 12, y: 0),
+                            size: CGSize(width: 12, height: size.height)
+                        )
+                        context.fill(
+                            Rectangle().path(in: rect),
+                            with: .linearGradient(
+                                gradient,
+                                startPoint: CGPoint(x: size.width, y: size.height / 2),
+                                endPoint: CGPoint(x: size.width - 12, y: size.height / 2))
+                        )
                     }
                 }
             }
@@ -89,13 +128,13 @@ struct BackdropBlurLayer: View {
         ScrollView {
             Color.yellow
                 .frame(width: 300, height: 300)
-                .padding(.top, 30)
+                .padding(.top, 40)
         }
         Text("14 Wed")
             .font(.headline)
             .padding(.horizontal)
+            .padding(.bottom, 8)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.bottom)
             .backdropBlur(smoothEdges: .bottom)
     }
 }
