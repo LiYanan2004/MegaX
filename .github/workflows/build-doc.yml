@@ -1,0 +1,44 @@
+name: worksapce
+on:
+  push:
+    branches:
+      - 'main'
+      
+jobs:
+  publish-doc:
+    runs-on: macos-14
+    permissions:
+      contents: write
+    steps:
+    - name: Get code
+      uses: actions/checkout@v4
+    - name: Switch Xcode Version
+      run: sudo xcode-select -switch /Applications/Xcode_15.2.app
+    - name: Build static site
+      uses: sersoft-gmbh/swifty-docs-action@v3
+      with:
+          use-xcodebuild: true
+          xcodebuild-scheme: ${{ github.event.repository.name }}
+          xcodebuild-destination: generic/platform=iOS
+          transform-for-static-hosting: true
+          hosting-base-path: ${{ github.event.repository.name }}
+          output: docs
+          
+    - name: Switch to gh-pages
+      uses: rodrigorodriguescosta/checkout@main
+      with:
+         repository: ${{ github.repository }}
+         path: /tmp/${{ github.repository }}
+         ref: gh-pages
+    - name: Push to gh-pages
+      run: |
+        cd /tmp/${{ github.repository }}
+        git rm * -r
+        cp -r /Users/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}/docs/ /tmp/${{ github.repository }}
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git rm -r --cached -f .
+        git add -A
+        git commit -m "Update doc"
+        git push
+      shell: bash
