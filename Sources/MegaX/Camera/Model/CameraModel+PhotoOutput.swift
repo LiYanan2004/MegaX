@@ -1,6 +1,7 @@
 import SwiftUI
 import AVFoundation
 
+@available(macOS, unavailable)
 extension CameraModel: AVCapturePhotoCaptureDelegate {
     func photoOutput(_ output: AVCapturePhotoOutput, willCapturePhotoFor resolvedSettings: AVCaptureResolvedPhotoSettings) {
         // Fully dim the preview and show it back.
@@ -22,6 +23,7 @@ extension CameraModel: AVCapturePhotoCaptureDelegate {
         }
     }
     
+    #if os(iOS)
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishCapturingDeferredPhotoProxy deferredPhotoProxy: AVCaptureDeferredPhotoProxy?, error: Error?) {
         if let error = error {
             logger.error("There is an error when finishing capturing deferred photo: \(error.localizedDescription)")
@@ -33,6 +35,7 @@ extension CameraModel: AVCapturePhotoCaptureDelegate {
             self.photoData = deferredPhotoProxy?.fileDataRepresentation()
         }
     }
+    #endif
     
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings, error: Error?) {
         if let error = error {

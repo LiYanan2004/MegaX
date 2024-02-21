@@ -1,5 +1,6 @@
 import SwiftUI
 
+@available(macOS, unavailable)
 struct CameraOpticalZoomOptionsBox: View {
     @State private var showDefault = true
     @Environment(CameraModel.self) private var model
@@ -79,6 +80,7 @@ struct CameraOpticalZoomOptionsBox: View {
     }
 }
 
+@available(macOS, unavailable)
 struct CameraOpticalZoomOptionButton: View {
     var targetZoomFactor: CGFloat
     var activeZoomFactorRange: Range<CGFloat>
@@ -152,7 +154,9 @@ struct CameraOpticalZoomOptionButton: View {
     }
 }
 
+#if os(iOS)
 #Preview {
     CameraOpticalZoomOptionsBox()
         .environment(CameraModel())
 }
+#endif
