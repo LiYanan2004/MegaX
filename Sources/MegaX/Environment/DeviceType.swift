@@ -8,6 +8,8 @@ public enum DeviceType: Int, @unchecked Sendable {
     case pad
     /// Devices running tvOS.
     case tv
+    /// Devices running watchOS.
+    case watch
     /// Devices running macOS and fully native macOS experience.
     case mac
     /// Devices running macOS but the app experience is powered by Mac Catalyst.
@@ -41,6 +43,8 @@ struct DeviceTypeEnvironmentKey: EnvironmentKey {
     static let defaultValue: DeviceType = .tv
     #elseif os(visionOS)
     static let defaultValue: DeviceType = .vision
+    #elseif os(watchOS)
+    static let defaultValue: DeviceType = .watch
     #else
     static let defaultValue: DeviceType = DeviceType(userInterfaceIdom: UIDevice.current.userInterfaceIdiom)
     #endif
