@@ -1,6 +1,7 @@
 import SwiftUI
 import AVFoundation
 
+@available(macOS, unavailable)
 struct FocusRectangle: View {
     enum FocusMode: Sendable, Equatable {
         case autoFocus
@@ -263,9 +264,11 @@ struct FocusRectanglePhase: Equatable {
     static let idle = FocusRectanglePhase(opacity: 0.3, scale: 1)
 }
 
+#if os(iOS)
 #Preview {
     FocusRectangle(focusMode: .manualFocusLocking)
         .frame(width: 100, height: 100)
         .preferredColorScheme(.dark)
         .environment(CameraModel())
 }
+#endif

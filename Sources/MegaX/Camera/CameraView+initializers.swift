@@ -1,5 +1,6 @@
 import SwiftUI
 
+@available(macOS, unavailable)
 extension CameraView where P == EmptyView {
     /// Creates a simple CameraView.
     /// - Parameters:

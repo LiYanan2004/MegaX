@@ -1,6 +1,7 @@
 import SwiftUI
 import AVFoundation
 
+@available(macOS, unavailable)
 struct FlashLightIndicator: View {
     @Environment(CameraModel.self) private var model
     @Environment(\.deviceType) private var deviceType
@@ -89,7 +90,9 @@ struct FlashLightIndicator: View {
     }
 }
 
+#if os(iOS)
 #Preview {
     FlashLightIndicator()
         .environment(CameraModel())
 }
+#endif

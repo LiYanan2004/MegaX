@@ -1,17 +1,21 @@
 import SwiftUI
 
 extension View {
+    @available(macOS, unavailable)
     func cameraZoomFactor(_ zoomFactor: Binding<CGFloat>) -> some View {
         modifier(CameraZoom(zoomFactor: zoomFactor))
     }
 }
 
+@available(macOS, unavailable)
 struct CameraZoom: ViewModifier {
     @Binding var zoomFactor: CGFloat
     @State var initialFactor: CGFloat?
     @Environment(CameraModel.self) private var model
     
-    private var minZoomFactor: CGFloat { model.videoDevice?.minAvailableVideoZoomFactor ?? 1 }
+    private var minZoomFactor: CGFloat {
+        model.videoDevice?.minAvailableVideoZoomFactor ?? 1
+    }
     private var maxZoomFactor: CGFloat {
         5.0 * CGFloat(truncating: model.videoDevice?.virtualDeviceSwitchOverVideoZoomFactors.last ?? 1)
     }
