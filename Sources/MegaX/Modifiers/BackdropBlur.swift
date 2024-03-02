@@ -47,18 +47,9 @@ struct BackdropBlurLayer: View {
     var smoothEdges: Edge.Set
     
     var body: some View {
-        Rectangle()
-            .fill(.ultraThinMaterial)
-            .environment(\.colorScheme, .light)
-            // Remove extra effects from system Material
-            .grayscale(0.2)
-            .contrast(1.62)
-            .brightness(-0.254)
-            .saturation(1.4)
-            // Adds additional blur
-            .blur(radius: transparency.blurRadius, opaque: true)
-            .compositingGroup()
-            // Smooth edges
+        Color.clear
+            // workaround: To avoid a occasional black background during rendering, place BackdropView in the .background.
+            .background(BackdropView().blur(radius: transparency.blurRadius, opaque: true))
             .padding(smoothEdges.isEmpty ? 0 : -12)
             .mask {
                 Canvas { context, size in
@@ -120,6 +111,23 @@ struct BackdropBlurLayer: View {
                 }
             }
             .ignoresSafeArea()
+    }
+}
+
+struct BackdropView: UIViewRepresentable {
+    typealias UIViewType = UIVisualEffectView
+
+    func makeUIView(context: Context) -> UIVisualEffectView {
+        UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+    }
+
+    func updateUIView(_ uiView: UIVisualEffectView, context: Context) {
+        // inspired by https://stackoverflow.com/a/76658308/4728060
+        DispatchQueue.main.async {
+            if let backdropLayer = uiView.layer.sublayers?.first {
+                backdropLayer.filters? = []
+            }
+        }
     }
 }
 
