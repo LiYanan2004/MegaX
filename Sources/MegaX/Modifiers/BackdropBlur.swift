@@ -47,18 +47,10 @@ struct BackdropBlurLayer: View {
     var smoothEdges: Edge.Set
     
     var body: some View {
-        Rectangle()
-            .fill(.ultraThinMaterial)
-            .environment(\.colorScheme, .light)
-            // Remove extra effects from system Material
-            .grayscale(0.2)
-            .contrast(1.62)
-            .brightness(-0.254)
-            .saturation(1.4)
-            // Adds additional blur
-            .blur(radius: transparency.blurRadius, opaque: true)
-            .compositingGroup()
-            // Smooth edges
+        Color.clear
+            // workaround: To avoid a occasional black background during rendering, place BackdropView in the .background.
+            .background(BackdropView().blur(radius: transparency.blurRadius, opaque: true).preferredColorScheme(.dark))
+            .preferredColorScheme(nil)
             .padding(smoothEdges.isEmpty ? 0 : -12)
             .mask {
                 Canvas { context, size in
@@ -121,6 +113,47 @@ struct BackdropBlurLayer: View {
             }
             .ignoresSafeArea()
     }
+}
+
+struct BackdropView: PlatformViewRepresentable {
+#if canImport(UIKit)
+    func makeUIView(context: Context) -> PlatformVisualEffectView {
+        UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+    }
+    func updateUIView(_ uiView: PlatformVisualEffectView, context: Context) {
+        DispatchQueue.main.async {
+            uiView.layer.sublayers?.forEach {
+                // CABackdropLayer
+                $0.filters? = []
+            }
+        }
+    }
+#else
+    func makeNSView(context: Context) -> PlatformVisualEffectView {
+        let view = NSVisualEffectView()
+        view.blendingMode = .withinWindow
+        view.isEmphasized = false
+        view.state = .active
+        return view
+    }
+    func updateNSView(_ nsView: PlatformVisualEffectView, context: Context) {
+        DispatchQueue.main.async {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            nsView.layer?.sublayers?.forEach {
+                $0.sublayers?.forEach { // kCUIVariantUnderWindowBackgroundMaterial
+                    if $0.name != "backdrop" {
+                        $0.removeFromSuperlayer()
+                        return
+                    }
+                    // CABackdropLayer
+                    $0.filters = []
+                }
+            }
+            CATransaction.commit()
+        }
+    }
+#endif
 }
 
 #Preview {
