@@ -114,21 +114,45 @@ struct BackdropBlurLayer: View {
     }
 }
 
-struct BackdropView: UIViewRepresentable {
-    typealias UIViewType = UIVisualEffectView
-
-    func makeUIView(context: Context) -> UIVisualEffectView {
+struct BackdropView: PlatformViewRepresentable {
+#if canImport(UIKit)
+    func makeUIView(context: Context) -> PlatformVisualEffectView {
         UIVisualEffectView(effect: UIBlurEffect(style: .systemUltraThinMaterial))
     }
-
-    func updateUIView(_ uiView: UIVisualEffectView, context: Context) {
-        // inspired by https://stackoverflow.com/a/76658308/4728060
+    func updateUIView(_ uiView: PlatformVisualEffectView, context: Context) {
         DispatchQueue.main.async {
-            if let backdropLayer = uiView.layer.sublayers?.first {
-                backdropLayer.filters? = []
+            uiView.layer.sublayers?.forEach {
+                // CABackdropLayer
+                $0.filters? = []
             }
         }
     }
+#else
+    func makeNSView(context: Context) -> PlatformVisualEffectView {
+        let view = NSVisualEffectView()
+        view.blendingMode = .withinWindow
+        view.isEmphasized = false
+        view.state = .active
+        return view
+    }
+    func updateNSView(_ nsView: PlatformVisualEffectView, context: Context) {
+        DispatchQueue.main.async {
+            CATransaction.begin()
+            CATransaction.setDisableActions(true)
+            nsView.layer?.sublayers?.forEach {
+                $0.sublayers?.forEach { // kCUIVariantUnderWindowBackgroundMaterial
+                    if $0.name != "backdrop" {
+                        $0.removeFromSuperlayer()
+                        return
+                    }
+                    // CABackdropLayer
+                    $0.filters = []
+                }
+            }
+            CATransaction.commit()
+        }
+    }
+#endif
 }
 
 #Preview {
