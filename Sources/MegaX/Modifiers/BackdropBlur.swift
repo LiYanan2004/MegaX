@@ -49,7 +49,8 @@ struct BackdropBlurLayer: View {
     var body: some View {
         Color.clear
             // workaround: To avoid a occasional black background during rendering, place BackdropView in the .background.
-            .background(BackdropView().blur(radius: transparency.blurRadius, opaque: true))
+            .background(BackdropView().blur(radius: transparency.blurRadius, opaque: true).preferredColorScheme(.dark))
+            .preferredColorScheme(nil)
             .padding(smoothEdges.isEmpty ? 0 : -12)
             .mask {
                 Canvas { context, size in
