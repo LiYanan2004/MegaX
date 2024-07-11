@@ -128,12 +128,7 @@ public final class Camera: NSObject {
         toggleCameraTask = Task {
             try await Task.sleep(for: .seconds(0.3))
             try Task.checkCancellation()
-            let videoDevice = AVCaptureDevice.DiscoverySession(
-                deviceTypes: [.builtInTripleCamera, .builtInDualCamera, .builtInWideAngleCamera],
-                mediaType: .video,
-                position: cameraSide.position
-            ).devices.first
-            _toggleCamera(to: videoDevice)
+            _toggleCamera(to: findDevice(position: cameraSide.position))
         }
     }
     
@@ -285,6 +280,20 @@ public final class Camera: NSObject {
     }
     
     // MARK: - Helper Methods
+    private func findDevice(preferedDeviceTypes: [AVCaptureDevice.DeviceType]? = nil, position: AVCaptureDevice.Position) -> AVCaptureDevice? {
+        var deviceTypes = preferedDeviceTypes ?? [.builtInTripleCamera, .builtInDualCamera, .builtInDualWideCamera, .builtInWideAngleCamera]
+        if #available(iOS 18, *), configuration.preferConstantColor {
+            deviceTypes = [.builtInDualWideCamera, .builtInWideAngleCamera]
+        }
+        
+        let discoverySession = AVCaptureDevice.DiscoverySession(
+            deviceTypes: deviceTypes,
+            mediaType: .video,
+            position: position
+        )
+        return discoverySession.devices.first
+    }
+    
     internal func configureCaptureDevice(_ configure: @escaping (_ device: AVCaptureDevice) throws -> Void) {
         guard let videoDevice else { return }
         do {
@@ -303,11 +312,7 @@ public final class Camera: NSObject {
         session.sessionPreset = .photo
         
         // Video device input
-        let videoDevice = AVCaptureDevice.DiscoverySession(
-            deviceTypes: [.builtInTripleCamera, .builtInDualCamera, .builtInDualWideCamera, .builtInWideAngleCamera],
-            mediaType: .video,
-            position: .back
-        ).devices.first
+        let videoDevice = findDevice(position: .back)
         guard let videoDevice else {
             logger.error("Cannot find an appropriate video device input.")
             return
@@ -462,11 +467,7 @@ public final class Camera: NSObject {
     }
     
     private func configureAvailableOpticalZoomsAndDefaultZoomsForCameras() {
-        if let backCamera = AVCaptureDevice.DiscoverySession(
-            deviceTypes: [.builtInTripleCamera, .builtInDualCamera, .builtInDualWideCamera, .builtInWideAngleCamera],
-            mediaType: .video,
-            position: .back
-        ).devices.first {
+        if let backCamera = findDevice(position: .back) {
             var backCameraOpticalZoomFactors = backCamera
                 .virtualDeviceSwitchOverVideoZoomFactors
                 .map(CGFloat.init(truncating:))
@@ -490,11 +491,7 @@ public final class Camera: NSObject {
             self.backCameraOpticalZoomFactors = backCameraOpticalZoomFactors
         }
         
-        if let frontCamera = AVCaptureDevice.DiscoverySession(
-            deviceTypes: [.builtInTripleCamera, .builtInDualCamera, .builtInDualWideCamera, .builtInWideAngleCamera],
-            mediaType: .video,
-            position: .front
-        ).devices.first {
+        if let frontCamera = findDevice(position: .front) {
             let support12MP = frontCamera
                 .formats
                 .flatMap(\.supportedMaxPhotoDimensions)
