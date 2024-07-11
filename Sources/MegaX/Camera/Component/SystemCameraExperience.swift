@@ -4,8 +4,11 @@ import SwiftUI
 ///
 /// This view is only for iOS and iPadOS. It doesn't support macOS.
 /// - note: If your app supports multiple orientation,  ``AppOrientationDelegate`` should be added to your `App` declaration via `@UIApplicationDelegateAdaptor` to obtain correct behavior.
-@available(macOS, unavailable)
 @available(macCatalyst, unavailable)
+@available(macOS, unavailable)
+@available(watchOS, unavailable)
+@available(visionOS, unavailable)
+@available(iOS 17.0, tvOS 17.0, *)
 public struct SystemCameraExperience: View {
     var action: (Data) -> Void
     @Environment(Camera.self) private var camera
@@ -56,13 +59,7 @@ public struct SystemCameraExperience: View {
                 ShutterButton(action: action)
                     .frame(maxWidth: compact ? 68 : .infinity)
                     .frame(maxWidth: .infinity)
-                    .overlay(alignment: .trailing) {
-                        cameraSwitchButton
-                    }
-                    .overlay(alignment: .leading) {
-                        //photoAlbum
-                           // .rotationEffect(.degrees(camera.interfaceRotationAngle))
-                    }
+                    .overlay(alignment: .trailing) { cameraSwitchButton }
                     .padding(.horizontal, 20)
             }
             .ignoresSafeArea(edges: fullHeight < 700 ? .top : [])
@@ -144,7 +141,7 @@ public struct SystemCameraExperience: View {
     }
 }
 
-#if !os(macOS) && !targetEnvironment(macCatalyst)
+#if os(iOS) && !targetEnvironment(macCatalyst)
 #Preview {
     CameraView { camera in
         SystemCameraExperience { capturedPhoto in

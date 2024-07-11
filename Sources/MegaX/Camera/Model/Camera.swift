@@ -448,7 +448,7 @@ public final class Camera: NSObject {
             }
         } while false
         
-        #if !os(macOS)
+        #if os(iOS) || os(tvOS)
         if let previewPhotoPixelFormatType = photoSettings.availablePreviewPhotoPixelFormatTypes.first {
             photoSettings.previewPhotoFormat = [kCVPixelBufferPixelFormatTypeKey as String: previewPhotoPixelFormatType]
         }
