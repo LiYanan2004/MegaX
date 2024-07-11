@@ -5,6 +5,7 @@ import SwiftUI
 /// This view is only for iOS and iPadOS. It doesn't support macOS.
 /// - note: If your app supports multiple orientation,  ``AppOrientationDelegate`` should be added to your `App` declaration via `@UIApplicationDelegateAdaptor` to obtain correct behavior.
 @available(macOS, unavailable)
+@available(macCatalyst, unavailable)
 public struct SystemCameraExperience: View {
     var action: (Data) -> Void
     @Environment(Camera.self) private var camera
@@ -143,6 +144,7 @@ public struct SystemCameraExperience: View {
     }
 }
 
+#if !os(macOS) && !targetEnvironment(macCatalyst)
 #Preview {
     CameraView { camera in
         SystemCameraExperience { capturedPhoto in
@@ -150,3 +152,4 @@ public struct SystemCameraExperience: View {
         }
     }
 }
+#endif
