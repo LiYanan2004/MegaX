@@ -6,7 +6,7 @@ extension View {
     /// - Returns: A view with the CameraView's auto deferred photo delivery enabled or disabled.
     public func autoDeferredPhotoDeliveryEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
-            configuration.autoDeferredPhotoDeliveryEnabledIfPossible = enabled
+            configuration.preferAutoDeferredPhotoDelivery = enabled
         }
     }
     
@@ -14,7 +14,7 @@ extension View {
     /// - Returns: A view with the CameraView's zero shutter lag enabled or disabled.
     public func zeroShutterLagEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
-            configuration.zeroShutterLagEnabledIfPossible = enabled
+            configuration.preferZeroShutterLag = enabled
         }
     }
     
@@ -22,7 +22,7 @@ extension View {
     /// - Returns: A view with the CameraView's responsive capture mode enabled or disabled.
     public func responsiveCaptureEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
-            configuration.responsiveCaptureEnabledIfPossible = enabled
+            configuration.preferResponsiveCapture = enabled
         }
     }
     
@@ -30,7 +30,10 @@ extension View {
     /// - Returns: A view with the CameraView's fast capture prioritization enabled or disabled.
     public func fastCapturePrioritizationEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
-            configuration.fastCapturePrioritizationEnabledIfPossible = enabled
+            if enabled {
+                configuration.preferResponsiveCapture = true
+            }
+            configuration.preferFastCapturePrioritization = enabled
         }
     }
 

@@ -1,8 +1,9 @@
 import SwiftUI
 
 @available(macOS, unavailable)
-extension CameraView where P == EmptyView {
+extension CameraView where Content == SystemCameraExperience {
     /// Creates a simple CameraView.
+    ///
     /// - Parameters:
     ///     - onFinishCapture: Completion callback when captured a photo.
     ///     - errorHandler: Callback when error occurred.
@@ -12,8 +13,11 @@ extension CameraView where P == EmptyView {
         onFinishCapture: @escaping (Data) -> Void,
         errorHandler: ((CameraError) -> Void)? = nil
     ) {
-        self.onFinishCapture = onFinishCapture
         self.errorHandler = errorHandler
-        self.photoAlbum = EmptyView()
+        self.content = { _ in
+            SystemCameraExperience { photo in
+                onFinishCapture(photo)
+            }
+        }
     }
 }

@@ -3,18 +3,17 @@ import AVFoundation
 
 extension View {
     @available(macOS, unavailable)
-    func cameraFocusable(focusLocked: Binding<Bool>) -> some View {
-        modifier(CameraFocusable(focusLocked: focusLocked))
+    func cameraFocusable() -> some View {
+        modifier(CameraFocusableModifier())
     }
 }
 
-@available(macOS, unavailable)
 @MainActor
-struct CameraFocusable: ViewModifier {
-    @Binding var focusLocked: Bool
+@available(macOS, unavailable)
+struct CameraFocusableModifier: ViewModifier {
     @State private var showAutoFocusRectangle = false
     @State private var manualFocusRectanglePosition: CGPoint?
-    @Environment(CameraModel.self) private var model
+    @Environment(Camera.self) private var camera
     
     @GestureState private var isTouching = false
     @State private var manualFocusMode = FocusRectangle.FocusMode.manualFocus
@@ -46,7 +45,7 @@ struct CameraFocusable: ViewModifier {
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: .AVCaptureDeviceSubjectAreaDidChange)) { _ in
-                model.configureCaptureDevice { device in
+                camera.configureCaptureDevice { device in
                     device.focusMode = .continuousAutoFocus
                     device.exposureMode = .continuousAutoExposure
                     device.setExposureTargetBias(.zero)
@@ -61,8 +60,8 @@ struct CameraFocusable: ViewModifier {
                     }
                 }
             }
-            .onChange(of: model.sessionState) {
-                if model.sessionState == .committing {
+            .onChange(of: camera.sessionState) {
+                if camera.sessionState == .committing {
                     manualFocusRectanglePosition = nil
                 }
             }
@@ -71,7 +70,7 @@ struct CameraFocusable: ViewModifier {
     var autoFocusGesture: some Gesture {
         SpatialTapGesture()
             .onEnded {
-                focusLocked = false
+                camera.focusLocked = false
                 manualFocusMode = .manualFocus
                 manualFocusRectanglePosition = $0.location
                 setAutoFocus(at: $0.location)
@@ -94,23 +93,23 @@ struct CameraFocusable: ViewModifier {
                         try await Task.sleep(for: .seconds(0.4))
                         guard self.isTouching else {
                             manualFocusMode = .manualFocus
-                            focusLocked = false
+                            camera.focusLocked = false
                             return
                         }
                         setLockedFocus(at: point)
-                        focusLocked = true
+                        camera.focusLocked = true
                     }
                 }
             }
     }
     
     private func setAutoFocus(at point: CGPoint) {
-        let pointOfInterest = model.cameraPreview
+        let pointOfInterest = camera.cameraPreview
             .preview
             .videoPreviewLayer
             .captureDevicePointConverted(fromLayerPoint: point)
         #if !targetEnvironment(simulator)
-        model.setManualFocus(
+        camera.setManualFocus(
             pointOfInterst: pointOfInterest,
             focusMode: .autoFocus,
             exposureMode: .autoExpose
@@ -119,12 +118,12 @@ struct CameraFocusable: ViewModifier {
     }
     
     private func setLockedFocus(at point: CGPoint) {
-        let pointOfInterest = model.cameraPreview
+        let pointOfInterest = camera.cameraPreview
             .preview
             .videoPreviewLayer
             .captureDevicePointConverted(fromLayerPoint: point)
         #if !targetEnvironment(simulator)
-        model.setManualFocus(
+        camera.setManualFocus(
             pointOfInterst: pointOfInterest,
             focusMode: .locked,
             exposureMode: .locked

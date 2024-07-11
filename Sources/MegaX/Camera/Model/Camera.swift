@@ -3,74 +3,52 @@ import Observation
 import AVFoundation
 import OSLog
 
-@available(macOS, unavailable)
 @Observable
-final class CameraModel: NSObject {
+@available(macOS, unavailable)
+public final class Camera: NSObject {
+    @ObservationIgnored internal let logger = Logger(subsystem: "MEGAX", category: "Camera")
+    
     // MARK: Custom delegates & configurations
-    @ObservationIgnored var didFinishCapture: ((Data) -> Void)?
-    @ObservationIgnored var errorHandler: ((CameraError) -> Void)?
-    @ObservationIgnored var configuration = CameraCaptureConfiguration()
+    @ObservationIgnored internal var errorHandler: ((CameraError) -> Void)?
+    @ObservationIgnored internal var configuration = CameraCaptureConfiguration()
+    @ObservationIgnored internal var captureContinuation: CheckedContinuation<Data, Never>?
     
     // MARK: UI states
-    @MainActor var photoData: Data?
-    var shutterDisabled = false
-    var isBusyProcessing = false
-    var dimCameraPreview = 0.0
-    var interfaceRotationAngle = Double.zero
-    enum SessionState: Sendable {
+    @MainActor internal var photoData: Data?
+    internal(set) public var shutterDisabled = false
+    internal(set) public var isBusyProcessing = false
+    internal var dimCameraPreview = 0.0
+    internal(set) public var interfaceRotationAngle = Double.zero
+    
+    // MARK: - Capture Session
+    public enum SessionState: Sendable {
         case running, notRunning, committing
     }
-    var sessionState: SessionState = .notRunning
-    enum CameraSide: Sendable {
-        case front, back
-        var position: AVCaptureDevice.Position {
-            switch self {
-            case .front: .front
-            case .back: .back
-            }
-        }
-        mutating func toggle() {
-            self = self == .front ? .back : .front
-        }
-    }
-    var cameraSide: CameraSide = .back
-    var isFrontCamera: Bool { cameraSide == .front }
-    var isBackCamera: Bool { cameraSide == .back }
+    internal(set) public var sessionState: SessionState = .notRunning
     
-    @ObservationIgnored let logger = Logger()
     @ObservationIgnored let session = AVCaptureSession()
-    @ObservationIgnored private var videoDeviceRotationCoordinator: AVCaptureDevice.RotationCoordinator!
-    @ObservationIgnored private var videoRotationAngleForHorizonLevelPreviewObservation: NSKeyValueObservation?
-    @ObservationIgnored private var videoRotationAngleForHorizonLevelCaptureObservation: NSKeyValueObservation?
-    @MainActor var portaitLocked: Bool {
-        #if os(iOS)
-        guard let currentWindowScene = UIApplication.shared.connectedScenes.first(
-            where: { $0.activationState == .foregroundActive }) as? UIWindowScene
-        else { return false }
-        return UIApplication.shared.delegate?.application?(UIApplication.shared, supportedInterfaceOrientationsFor: currentWindowScene.keyWindow) == .portrait
-        #else
-        false
-        #endif
-    }
+    @ObservationIgnored private var sessionQueue = DispatchQueue(label: "com.liyanan2004.megax.sessionQueue")
+    @ObservationIgnored var videoDevice: AVCaptureDevice? { videoDeviceInput?.device }
+    @ObservationIgnored var videoDeviceInput: AVCaptureDeviceInput!
+    @ObservationIgnored var photoOutput = AVCapturePhotoOutput()
+    
+    // MARK: - Camera Experience
     @MainActor @ObservationIgnored lazy var cameraPreview: CameraPreview = {
         CameraPreview(session: session)
     }()
-    @ObservationIgnored var videoDeviceInput: AVCaptureDeviceInput!
-    @ObservationIgnored var photoOutput = AVCapturePhotoOutput()
+    @ObservationIgnored private var videoDeviceRotationCoordinator: AVCaptureDevice.RotationCoordinator!
+    @ObservationIgnored private var videoRotationAngleForHorizonLevelPreviewObservation: NSKeyValueObservation?
+    @ObservationIgnored private var videoRotationAngleForHorizonLevelCaptureObservation: NSKeyValueObservation?
     @ObservationIgnored private var sceneMonitoring: NSKeyValueObservation?
     @ObservationIgnored private var readinessCoordinator: AVCapturePhotoOutputReadinessCoordinator!
-    @ObservationIgnored private var sessionQueue = DispatchQueue(label: "com.liyanan2004.megax.sessionQueue")
-    @ObservationIgnored var videoDevice: AVCaptureDevice? { videoDeviceInput?.device }
     
-    // MARK: Flash Light
-    var flashLightCapable: Bool { videoDevice?.hasFlash ?? false }
-    var flashMode: AVCaptureDevice.FlashMode = .auto
-    
-    // MARK: Zoom Factors
-    var zoomFactor: CGFloat = 1
-    var backCameraOpticalZoomFactors: [CGFloat] = []
-    var backCameraDefaultZoomFactor: CGFloat = 1
-    var frontCameraDefaultZoomFactor: CGFloat = 1
+    // MARK: - Flash Light
+    #if targetEnvironment(simulator)
+    public var currentDeviceHasFlash: Bool { true } // Enable flash indicator for preview
+    #else
+    public var currentDeviceHasFlash: Bool { videoDevice?.hasFlash ?? false }
+    #endif
+    public var flashMode: AVCaptureDevice.FlashMode = .auto
     
     // TODO: Macro Control
     @ObservationIgnored private var activePrimaryConstituentDeviceObservation: NSKeyValueObservation?
@@ -87,7 +65,8 @@ final class CameraModel: NSObject {
         get async { await AVCaptureDevice.requestAccess(for: .video) }
     }
     
-    func startSession() {
+    public func startSession() {
+        guard session.isRunning == false else { return }
         sessionQueue.async { [self] in
             configureSession()
             session.startRunning()
@@ -97,7 +76,8 @@ final class CameraModel: NSObject {
         }
     }
     
-    func stopSession() {
+    public func stopSession() {
+        guard session.isRunning else { return }
         sessionQueue.async { [self] in
             session.stopRunning()
             Task { @MainActor in
@@ -119,7 +99,45 @@ final class CameraModel: NSObject {
         }
     }
 
-    func toggleCamera(to videoDevice: AVCaptureDevice?) {
+    // MARK: - Toggle Camera
+    public enum CameraSide: Sendable {
+        case front, back
+        var position: AVCaptureDevice.Position {
+            switch self {
+            case .front: .front
+            case .back: .back
+            }
+        }
+        mutating func toggle() {
+            self = self == .front ? .back : .front
+        }
+    }
+    internal(set) public var cameraSide: CameraSide = .back
+    internal var isFrontCamera: Bool { cameraSide == .front }
+    internal var isBackCamera: Bool { cameraSide == .back }
+    private var toggleCameraTask: Task<Void, Error>?
+    
+    func toggleCamera() {
+        shutterDisabled = true
+        sessionState = .committing
+        dimCameraPreview = 0.2
+        withAnimation(.easeInOut) {
+            cameraSide.toggle()
+        }
+        toggleCameraTask?.cancel()
+        toggleCameraTask = Task {
+            try await Task.sleep(for: .seconds(0.3))
+            try Task.checkCancellation()
+            let videoDevice = AVCaptureDevice.DiscoverySession(
+                deviceTypes: [.builtInTripleCamera, .builtInDualCamera, .builtInWideAngleCamera],
+                mediaType: .video,
+                position: cameraSide.position
+            ).devices.first
+            _toggleCamera(to: videoDevice)
+        }
+    }
+    
+    private func _toggleCamera(to videoDevice: AVCaptureDevice?) {
         sessionQueue.async { [self] in
             session.beginConfiguration()
 
@@ -186,6 +204,12 @@ final class CameraModel: NSObject {
         }
     }
     
+    // MARK: - Zoom
+    internal(set) var zoomFactor: CGFloat = 1
+    internal(set) var backCameraOpticalZoomFactors: [CGFloat] = []
+    internal(set) var backCameraDefaultZoomFactor: CGFloat = 1
+    internal(set) var frontCameraDefaultZoomFactor: CGFloat = 1
+    
     func setZoomFactor(
         _ zoomFactor: CGFloat,
         withRate rate: Float? = nil,
@@ -206,6 +230,9 @@ final class CameraModel: NSObject {
             }
         }
     }
+    
+    // MARK: - Focus
+    var focusLocked = false
     
     func setManualFocus(pointOfInterst: CGPoint, focusMode: AVCaptureDevice.FocusMode, exposureMode: AVCaptureDevice.ExposureMode) {
         configureCaptureDevice { device in
@@ -231,11 +258,22 @@ final class CameraModel: NSObject {
         }
     }
     
-    func capturePhoto() {
+    // MARK: - Capture
+    public func capturePhoto(completionHandler: @escaping (Data) -> Void) {
+        #if targetEnvironment(simulator)
+        return 
+        #endif
         let photoSettings = createPhotoSettings()
         readinessCoordinator.startTrackingCaptureRequest(using: photoSettings)
         
         let videoRotationAngle = self.videoDeviceRotationCoordinator.videoRotationAngleForHorizonLevelCapture
+        
+        Task {
+            let capturedPhotoData = await withCheckedContinuation { (continuation: CheckedContinuation<Data, Never>) in
+                self.captureContinuation = continuation
+            }
+            completionHandler(capturedPhotoData)
+        }
         
         sessionQueue.async { [self] in
             if let photoOutputConnection = self.photoOutput.connection(with: .video) {
@@ -246,7 +284,8 @@ final class CameraModel: NSObject {
         }
     }
     
-    func configureCaptureDevice(_ configure: @escaping (_ device: AVCaptureDevice) throws -> Void) {
+    // MARK: - Helper Methods
+    internal func configureCaptureDevice(_ configure: @escaping (_ device: AVCaptureDevice) throws -> Void) {
         guard let videoDevice else { return }
         do {
             try videoDevice.lockForConfiguration()
@@ -335,15 +374,15 @@ final class CameraModel: NSObject {
         photoOutput.maxPhotoDimensions = supportedMaxDimensions.last!
         
         if photoOutput.isAutoDeferredPhotoDeliverySupported {
-            photoOutput.isAutoDeferredPhotoDeliveryEnabled = configuration.autoDeferredPhotoDeliveryEnabledIfPossible
+            photoOutput.isAutoDeferredPhotoDeliveryEnabled = configuration.preferAutoDeferredPhotoDelivery
         }
         if photoOutput.isZeroShutterLagSupported {
-            photoOutput.isZeroShutterLagEnabled = configuration.zeroShutterLagEnabledIfPossible
+            photoOutput.isZeroShutterLagEnabled = configuration.preferZeroShutterLag
         }
         if photoOutput.isResponsiveCaptureSupported {
-            photoOutput.isResponsiveCaptureEnabled = configuration.responsiveCaptureEnabledIfPossible
+            photoOutput.isResponsiveCaptureEnabled = configuration.preferResponsiveCapture
             if photoOutput.isFastCapturePrioritizationSupported {
-                photoOutput.isFastCapturePrioritizationEnabled = configuration.fastCapturePrioritizationEnabledIfPossible
+                photoOutput.isFastCapturePrioritizationEnabled = configuration.preferFastCapturePrioritization
             }
         }
     }
@@ -385,7 +424,6 @@ final class CameraModel: NSObject {
     
     @MainActor
     private func setInterfaceRotationAngle(_ videoRotationAngleForHorizonLevelCapture: CGFloat) {
-        guard self.portaitLocked else { return }
         // We need to rotate element based on `videoRotationAngleForHorizonLevelCapture`
         var targetRotationAngle = Double(videoRotationAngleForHorizonLevelCapture)
         if targetRotationAngle >= 180 {

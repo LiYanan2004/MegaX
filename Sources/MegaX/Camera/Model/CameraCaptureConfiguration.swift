@@ -7,15 +7,13 @@ struct CameraCaptureConfiguration: Sendable, Equatable {
     /// Enable automatic lens switching if the device has multiple constituent devices.
     var autoSwitchingLens = true
     /// Enable zero shutter lag if the device supported.
-    var zeroShutterLagEnabledIfPossible = true
+    var preferZeroShutterLag = true
     /// Enable responsive capture if the device supported.
-    var responsiveCaptureEnabledIfPossible = true
+    var preferResponsiveCapture = true
     /// Enable fast capture prioritization if the device supported.
-    ///
-    /// You should enable `responsiveCaptureEnabledIfPossible` first.
-    var fastCapturePrioritizationEnabledIfPossible = true
+    var preferFastCapturePrioritization = true
     /// Enable auto deferred photo delivery if the device supported.
-    var autoDeferredPhotoDeliveryEnabledIfPossible = false
+    var preferAutoDeferredPhotoDelivery = false
     #if os(iOS)
     /// Prefered stabilization mode for current capture device.
     var stabilizationMode = AVCaptureVideoStabilizationMode.auto

@@ -33,7 +33,7 @@ struct FocusRectangle: View {
     
     @State private var focusTrackingTask: Task<Void, Error>?
     @State private var idleTimer: Task<Void, Error>?
-    @Environment(CameraModel.self) private var model
+    @Environment(Camera.self) private var camera
     
     var body: some View {
         Rectangle()
@@ -102,8 +102,10 @@ struct FocusRectangle: View {
         Canvas { context, size in
             context.translateBy(x: size.width / 2, y: 0)
             
-            let sliderRect = CGRect(origin: .zero, size: CGSize(width: 1, height: size.height))
-            context.fill(Rectangle().path(in: sliderRect), with: .color(.yellow))
+            if exposureY != .zero {
+                let sliderRect = CGRect(origin: .zero, size: CGSize(width: 1, height: size.height))
+                context.fill(Rectangle().path(in: sliderRect), with: .color(.yellow))
+            }
             
             context.blendMode = .clear
             
@@ -163,7 +165,7 @@ struct FocusRectangle: View {
                 idleTimer?.cancel()
                 currentPhase = .normal
                 do {
-                    guard let device = model.videoDevice else { return }
+                    guard let device = camera.videoDevice else { return }
                     if !isUnlocked {
                         try device.lockForConfiguration()
                         self.isUnlocked = true
@@ -173,12 +175,12 @@ struct FocusRectangle: View {
                     device.exposureMode = .autoExpose
                     device.setExposureTargetBias(Float(ev))
                 } catch {
-                    print("Cannot lock device for configuration: \(error.localizedDescription)")
+                    camera.logger.error("Cannot lock device for configuration: \(error.localizedDescription)")
                 }
             }
             .onEnded { _ in
                 updateFocusRectangle()
-                if let device = model.videoDevice {
+                if let device = camera.videoDevice {
                     device.unlockForConfiguration()
                 }
                 self.isUnlocked = false
@@ -194,7 +196,7 @@ struct FocusRectangle: View {
         #else
         // Get current capure device
         var device: AVCaptureDevice?
-        model.configureCaptureDevice { captureDevice in
+        camera.configureCaptureDevice { captureDevice in
             device = captureDevice
         }
         guard let device else { return }
@@ -269,6 +271,6 @@ struct FocusRectanglePhase: Equatable {
     FocusRectangle(focusMode: .manualFocusLocking)
         .frame(width: 100, height: 100)
         .preferredColorScheme(.dark)
-        .environment(CameraModel())
+        .environment(Camera())
 }
 #endif

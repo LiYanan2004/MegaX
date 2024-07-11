@@ -2,8 +2,8 @@ import SwiftUI
 import AVFoundation
 
 @available(macOS, unavailable)
-struct FlashLightIndicator: View {
-    @Environment(CameraModel.self) private var model
+public struct FlashLightIndicator: View {
+    @Environment(Camera.self) private var camera
     @Environment(\.deviceType) private var deviceType
     @AppStorage("MEGAX_CAM_FLASH_MODE") private var userPreferedFlashMode: AVCaptureDevice.FlashMode = .auto
     
@@ -19,9 +19,17 @@ struct FlashLightIndicator: View {
     @State private var sceneMonitoringSetting = AVCapturePhotoSettings()
     @State private var flashSceneObserver: NSKeyValueObservation?
     @State private var isFlashScene = false
+    @Namespace private var flashIndicator
     
-    var body: some View {
-        if model.flashLightCapable {
+    /// Create a flash indicator when the current capture device has flash.
+    ///
+    /// This view can automatically determine whether to show itself based on the current capture device capability.
+    ///
+    /// - note: This view must be installed inside a ``CameraView``.
+    public init() { }
+    
+    public var body: some View {
+        if camera.currentDeviceHasFlash {
             Button {
                 userPreferedFlashMode = switch userPreferedFlashMode {
                 case .off: .auto
@@ -29,8 +37,7 @@ struct FlashLightIndicator: View {
                 }
             } label: {
                 Circle()
-                    .stroke(.secondary, lineWidth: 1.25)
-                    .padding(1.25)
+                    .strokeBorder(.secondary, lineWidth: 1.25)
                     .opacity(isFlashScene ? 0 : 1)
                     .background {
                         Circle()
@@ -44,25 +51,29 @@ struct FlashLightIndicator: View {
                             .font(.system(size: deviceType == .phone ? 16 : 20))
                     }
                     .mask {
-                        HStack(spacing: -0.3) {
+                        ZStack {
                             Rectangle()
-                            Rectangle()
+                            Capsule()
                                 .frame(width: 4)
-                                .scaleEffect(userPreferedFlashMode == .off ? 0 : 1, anchor: .bottom)
-                            Rectangle()
+                                .padding(.vertical, -2)
+                                .scaleEffect(y: userPreferedFlashMode == .off ? 1 : 0, anchor: .top)
+                                .rotationEffect(.degrees(-45))
+                                .blendMode(.destinationOut)
                         }
-                        .rotationEffect(.degrees(-45))
                     }
                     .overlay {
                         Rectangle()
                             .frame(width: 1.25)
-                            .scaleEffect(userPreferedFlashMode == .off ? 1 : 0, anchor: .top)
+                            .scaleEffect(y: userPreferedFlashMode == .off ? 1 : 0, anchor: .top)
+                            .padding(.vertical, -2)
                             .rotationEffect(.degrees(-45))
                     }
                     .padding(deviceType == .pad ? 8 : 0)
             }
+            .aspectRatio(1, contentMode: .fit)
             .frame(width: 28)
-            .buttonStyle(.shutter)
+            .clipped()
+            .buttonStyle(.responsive)
             .labelStyle(.iconOnly)
             .if(deviceType == .pad) { content in
                 content
@@ -73,18 +84,18 @@ struct FlashLightIndicator: View {
             }
             .animation(.smooth, value: userPreferedFlashMode)
             .task(id: userPreferedFlashMode) {
-                model.flashMode = userPreferedFlashMode
+                camera.flashMode = userPreferedFlashMode
                 sceneMonitoringSetting.flashMode = userPreferedFlashMode
-                model.photoOutput.photoSettingsForSceneMonitoring = sceneMonitoringSetting
-                flashSceneObserver = model.photoOutput.observe(\.isFlashScene, options: .new) { _, change in
+                camera.photoOutput.photoSettingsForSceneMonitoring = sceneMonitoringSetting
+                flashSceneObserver = camera.photoOutput.observe(\.isFlashScene, options: .new) { _, change in
                     guard let isFlashScene = change.newValue else { return }
                     withAnimation(.smooth(duration: 0.2)) {
                         self.isFlashScene = isFlashScene
                     }
                 }
             }
-            .onChange(of: model.flashMode) {
-                userPreferedFlashMode = model.flashMode
+            .onChange(of: camera.flashMode) {
+                userPreferedFlashMode = camera.flashMode
             }
         }
     }
@@ -92,7 +103,10 @@ struct FlashLightIndicator: View {
 
 #if os(iOS)
 #Preview {
-    FlashLightIndicator()
-        .environment(CameraModel())
+    CameraView { _ in
+        
+    } content: { _ in
+        FlashLightIndicator()
+    }
 }
 #endif
