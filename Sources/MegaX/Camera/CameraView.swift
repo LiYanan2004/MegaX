@@ -49,19 +49,19 @@ public struct CameraView<Content: View>: View {
 
 #if !os(macOS)
 #Preview {
-    CameraView { camera in
-        VStack {
-            ViewFinder()
-            ShutterButton { capturedPhoto in
-                // Process captured photo here.
-            }
-        }
-    } errorHandler: { error in
+    CameraView { error in
         switch error {
         case .captureError(let error):
             print("Capture Error: \(error.localizedDescription)")
         case .permissionDenied:
             print("User denied camera permission")
+        }
+    } content: { camera in
+        VStack {
+            ViewFinder()
+            ShutterButton { capturedPhoto in
+                // Process captured photo here.
+            }
         }
     }
 }

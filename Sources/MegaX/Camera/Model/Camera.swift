@@ -26,11 +26,11 @@ public final class Camera: NSObject {
     }
     internal(set) public var sessionState: SessionState = .notRunning
     
-    @ObservationIgnored let session = AVCaptureSession()
-    @ObservationIgnored private var sessionQueue = DispatchQueue(label: "com.liyanan2004.megax.sessionQueue")
-    @ObservationIgnored var videoDevice: AVCaptureDevice? { videoDeviceInput?.device }
-    @ObservationIgnored var videoDeviceInput: AVCaptureDeviceInput!
-    @ObservationIgnored var photoOutput = AVCapturePhotoOutput()
+    internal let session = AVCaptureSession()
+    private var sessionQueue = DispatchQueue(label: "com.liyanan2004.megax.sessionQueue")
+    internal var videoDevice: AVCaptureDevice? { videoDeviceInput?.device }
+    internal var videoDeviceInput: AVCaptureDeviceInput!
+    internal var photoOutput = AVCapturePhotoOutput()
     
     // MARK: - Camera Experience
     @MainActor @ObservationIgnored lazy var cameraPreview: CameraPreview = {
@@ -390,6 +390,11 @@ public final class Camera: NSObject {
                 photoOutput.isFastCapturePrioritizationEnabled = configuration.preferFastCapturePrioritization
             }
         }
+        if #available(iOS 18.0, macOS 15.0, tvOS 18.0, macCatalyst 18.0, *) {
+            if photoOutput.isConstantColorSupported {
+                photoOutput.isConstantColorEnabled = configuration.preferConstantColor
+            }
+        }
     }
     
     private func createPhotoSettings() -> AVCapturePhotoSettings {
@@ -400,6 +405,23 @@ public final class Camera: NSObject {
         } else {
             self.flashMode = .off
         }
+        
+        repeat {
+            if #available(iOS 18.0, macOS 15.0, tvOS 18.0, macCatalyst 18.0, *),
+               configuration.preferConstantColor {
+                if photoOutput.isConstantColorEnabled == false {
+                    logger.error("[Constant Color] Current device doesn't support constant color.")
+                    break
+                } else if flashMode == .off {
+                    logger.error("[Constant Color] Constant color is unavailable when flash mode is off.")
+                    break
+                }
+                
+                photoSettings.isConstantColorEnabled = configuration.preferConstantColor
+                photoSettings.isConstantColorFallbackPhotoDeliveryEnabled = configuration.enableConstantColorFallbackDelivery
+            }
+        } while false
+        
         if let previewPhotoPixelFormatType = photoSettings.availablePreviewPhotoPixelFormatTypes.first {
             photoSettings.previewPhotoFormat = [kCVPixelBufferPixelFormatTypeKey as String: previewPhotoPixelFormatType]
         }
