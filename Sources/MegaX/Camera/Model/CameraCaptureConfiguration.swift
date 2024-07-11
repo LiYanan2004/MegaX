@@ -18,4 +18,8 @@ struct CameraCaptureConfiguration: Sendable, Equatable {
     /// Prefered stabilization mode for current capture device.
     var stabilizationMode = AVCaptureVideoStabilizationMode.auto
     #endif
+    /// A Boolean value that indicates whether to capture the photo with constant color.
+    var preferConstantColor = false
+    /// A Boolean value that indicates whether to deliver a fallback photo when taking a constant color capture without enough confidence.
+    var enableConstantColorFallbackDelivery = false
 }

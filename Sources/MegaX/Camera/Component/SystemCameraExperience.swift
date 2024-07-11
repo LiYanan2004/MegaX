@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// A system-like camera pre-built camera view.
+/// A system-like, pre-built camera view.
 public struct SystemCameraExperience: View {
     var action: (Data) -> Void
     @Environment(Camera.self) private var camera

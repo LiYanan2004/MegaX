@@ -3,7 +3,6 @@ import AVFoundation
 
 extension View {
     /// Enable auto deferred photo delivery if the device supports.
-    /// - Returns: A view with the CameraView's auto deferred photo delivery enabled or disabled.
     public func autoDeferredPhotoDeliveryEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
             configuration.preferAutoDeferredPhotoDelivery = enabled
@@ -11,7 +10,6 @@ extension View {
     }
     
     /// Enable zero shutter lag if the device supports.
-    /// - Returns: A view with the CameraView's zero shutter lag enabled or disabled.
     public func zeroShutterLagEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
             configuration.preferZeroShutterLag = enabled
@@ -19,7 +17,6 @@ extension View {
     }
     
     /// Enable responsive capture if the device supports.
-    /// - Returns: A view with the CameraView's responsive capture mode enabled or disabled.
     public func responsiveCaptureEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
             configuration.preferResponsiveCapture = enabled
@@ -27,7 +24,6 @@ extension View {
     }
     
     /// Enable fast capture prioritization if the device supports.
-    /// - Returns: A view with the CameraView's fast capture prioritization enabled or disabled.
     public func fastCapturePrioritizationEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
             if enabled {
@@ -38,7 +34,6 @@ extension View {
     }
 
     /// Enable auto lens switching behavior when capture device consists of multiple lens.
-    /// - Returns: A view with the CameraView's auto lens switching mode enabled or disabled.
     func autoSwitchingLensEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
             configuration.autoSwitchingLens = enabled
@@ -46,20 +41,28 @@ extension View {
     }
     
     /// Enable multitasking camera access if the device supports.
-    /// - Returns: A view with the CameraView's multitasking access enabled or disabled.
     public func captureWhenMultiTaskingEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
             configuration.captureWhenMultiTasking = enabled
         }
     }
     
-    @available(macOS, unavailable)
     /// Sets prefered camera stabilization mode.
-    /// - Returns: A view with the CameraView's prefered stabilization mode set.
+    @available(macOS, unavailable)
     public func cameraStabilizationMode(_ mode: AVCaptureVideoStabilizationMode) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
             #if os(iOS)
             configuration.stabilizationMode = mode
+            #endif
+        }
+    }
+    
+    /// Prefer capture content in constant color if the device is capable.
+    public func cameraConstantColorEnabled(_ enabled: Bool = true, fallbackDeliveryEnabled: Bool = true) -> some View {
+        transformEnvironment(\._captureConfiguration) { configuration in
+            #if os(iOS)
+            configuration.preferConstantColor = enabled
+            configuration.enableConstantColorFallbackDelivery = enabled
             #endif
         }
     }
