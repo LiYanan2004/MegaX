@@ -1,6 +1,5 @@
 import AVFoundation
 
-@available(macOS, unavailable)
 extension Camera: AVCapturePhotoOutputReadinessCoordinatorDelegate {
     public func readinessCoordinator(_ coordinator: AVCapturePhotoOutputReadinessCoordinator, captureReadinessDidChange captureReadiness: AVCapturePhotoOutput.CaptureReadiness) {
         self.shutterDisabled = captureReadiness != .ready

@@ -1,8 +1,9 @@
 import SwiftUI
 import AVFoundation
 
-/// A view for capturing photos.
-@available(macOS, unavailable)
+/// A view that holds a camera object and enables you to build a fully customized camera experience.
+@available(visionOS, unavailable)
+@available(watchOS, unavailable)
 public struct CameraView<Content: View>: View {
     var errorHandler: ((_ error: CameraError) -> Void)?
     @ViewBuilder var content: (Camera) -> Content
@@ -12,8 +13,7 @@ public struct CameraView<Content: View>: View {
     
     /// Creates a customized camera experience.
     /// - Parameters:
-    ///     - errorHandler: Callback when error occurred.
-    ///     - content: Customized camera experience.
+    ///     - errorHandler: The action to perform when error occurs.
     public init(
         errorHandler: ((CameraError) -> Void)? = nil,
         @ViewBuilder content: @escaping (Camera) -> Content
@@ -47,7 +47,6 @@ public struct CameraView<Content: View>: View {
     }
 }
 
-#if !os(macOS)
 #Preview {
     CameraView { error in
         switch error {
@@ -65,4 +64,3 @@ public struct CameraView<Content: View>: View {
         }
     }
 }
-#endif

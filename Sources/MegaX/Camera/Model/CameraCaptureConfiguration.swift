@@ -12,9 +12,9 @@ struct CameraCaptureConfiguration: Sendable, Equatable {
     var preferResponsiveCapture = true
     /// Enable fast capture prioritization if the device supported.
     var preferFastCapturePrioritization = true
+    #if os(iOS)
     /// Enable auto deferred photo delivery if the device supported.
     var preferAutoDeferredPhotoDelivery = false
-    #if os(iOS)
     /// Prefered stabilization mode for current capture device.
     var stabilizationMode = AVCaptureVideoStabilizationMode.auto
     #endif

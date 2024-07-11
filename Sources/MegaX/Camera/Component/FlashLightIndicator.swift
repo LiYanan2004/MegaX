@@ -1,7 +1,6 @@
 import SwiftUI
 import AVFoundation
 
-@available(macOS, unavailable)
 public struct FlashLightIndicator: View {
     @Environment(Camera.self) private var camera
     @Environment(\.deviceType) private var deviceType
@@ -85,6 +84,7 @@ public struct FlashLightIndicator: View {
             .animation(.smooth, value: userPreferedFlashMode)
             .task(id: userPreferedFlashMode) {
                 camera.flashMode = userPreferedFlashMode
+                #if !os(macOS)
                 sceneMonitoringSetting.flashMode = userPreferedFlashMode
                 camera.photoOutput.photoSettingsForSceneMonitoring = sceneMonitoringSetting
                 flashSceneObserver = camera.photoOutput.observe(\.isFlashScene, options: .new) { _, change in
@@ -93,6 +93,7 @@ public struct FlashLightIndicator: View {
                         self.isFlashScene = isFlashScene
                     }
                 }
+                #endif
             }
             .onChange(of: camera.flashMode) {
                 userPreferedFlashMode = camera.flashMode

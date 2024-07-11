@@ -2,12 +2,18 @@ import SwiftUI
 
 extension View {
     @available(macOS, unavailable)
+    @available(watchOS, unavailable)
+    @available(visionOS, unavailable)
     func cameraZoomFactor() -> some View {
+        #if os(iOS) || os(tvOS)
         modifier(CameraZoomModifier())
+        #else
+        self
+        #endif
     }
 }
 
-@available(macOS, unavailable)
+#if os(iOS) || os(tvOS)
 struct CameraZoomModifier: ViewModifier {
     @State var initialFactor: CGFloat?
     @Environment(Camera.self) private var camera
@@ -56,3 +62,4 @@ struct CameraZoomModifier: ViewModifier {
             }
     }
 }
+#endif

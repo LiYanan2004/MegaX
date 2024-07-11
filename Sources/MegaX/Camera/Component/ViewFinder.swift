@@ -9,7 +9,7 @@ public struct ViewFinder: View {
     private var isPhone: Bool { deviceType == .phone }
     
     /// Create a view finder for camera experience.
-    /// - parameter includingOpticalZoomButtons: Adds optical zoom factor buttons to indicate current zoom factor and provide quick zooming.
+    /// - parameter includingOpticalZoomButtons: Adds optical zoom factor buttons to indicate current zoom factor and provide quick zooming. Only shows on iOS.
     /// - note: This view must be installed inside a ``CameraView``.
     public init(includingOpticalZoomButtons: Bool = false) {
         self.includingOpticalZoomButtons = includingOpticalZoomButtons
@@ -30,8 +30,10 @@ public struct ViewFinder: View {
                 axis: (x: 0.0, y: 1.0, z: 0.0),
                 perspective: 0
             )
+            #if os(iOS) || os(tvOS)
             .cameraFocusable()
             .cameraZoomFactor()
+            #endif
             .opacity(1 - camera.dimCameraPreview)
             .layoutPriority(1)
             .overlay(alignment: .bottomLeading) {
@@ -48,11 +50,13 @@ public struct ViewFinder: View {
                     .transition(.opacity.animation(.easeInOut(duration: 0.3)))
                 }
             }
+            #if os(iOS)
             .overlay(alignment: isPhone ? .bottom : .leading) {
                 if includingOpticalZoomButtons {
                     CameraOpticalZoomOptionsBox().padding()
                 }
             }
+            #endif
             .overlay {
                 Rectangle()
                     .stroke(.secondary, lineWidth: 2)
