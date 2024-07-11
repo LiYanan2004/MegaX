@@ -341,7 +341,11 @@ public final class Camera: NSObject {
         session.sessionPreset = .photo
         
         // Video device input
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        let videoDevice = findDevice(position: .unspecified)
+        #else
         let videoDevice = findDevice(position: .back)
+        #endif
         guard let videoDevice else {
             logger.error("Cannot find an appropriate video device input.")
             return
