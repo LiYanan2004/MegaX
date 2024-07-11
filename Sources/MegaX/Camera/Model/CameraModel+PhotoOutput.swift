@@ -1,7 +1,6 @@
 import SwiftUI
 import AVFoundation
 
-@available(macOS, unavailable)
 extension Camera: AVCapturePhotoCaptureDelegate {
     public func photoOutput(_ output: AVCapturePhotoOutput, willCapturePhotoFor resolvedSettings: AVCaptureResolvedPhotoSettings) {
         // Fully dim the preview and show it back.
@@ -23,7 +22,7 @@ extension Camera: AVCapturePhotoCaptureDelegate {
         }
     }
     
-    #if os(iOS)
+    #if os(iOS) && !targetEnvironment(macCatalyst)
     public func photoOutput(_ output: AVCapturePhotoOutput, didFinishCapturingDeferredPhotoProxy deferredPhotoProxy: AVCaptureDeferredPhotoProxy?, error: Error?) {
         if let error = error {
             logger.error("There is an error when finishing capturing deferred photo: \(error.localizedDescription)")

@@ -2,12 +2,14 @@ import SwiftUI
 import AVFoundation
 
 extension View {
+    #if os(iOS)
     /// Enable auto deferred photo delivery if the device supports.
     public func autoDeferredPhotoDeliveryEnabled(_ enabled: Bool) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
             configuration.preferAutoDeferredPhotoDelivery = enabled
         }
     }
+    #endif
     
     /// Enable zero shutter lag if the device supports.
     public func zeroShutterLagEnabled(_ enabled: Bool) -> some View {

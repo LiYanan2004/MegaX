@@ -3,12 +3,18 @@ import AVFoundation
 
 extension View {
     @available(macOS, unavailable)
+    @available(watchOS, unavailable)
+    @available(visionOS, unavailable)
     func cameraFocusable() -> some View {
+        #if os(iOS) || os(tvOS)
         modifier(CameraFocusableModifier())
+        #else
+        self
+        #endif
     }
 }
 
-@MainActor
+#if os(iOS) || os(tvOS)
 @available(macOS, unavailable)
 struct CameraFocusableModifier: ViewModifier {
     @State private var showAutoFocusRectangle = false
@@ -131,3 +137,4 @@ struct CameraFocusableModifier: ViewModifier {
         #endif
     }
 }
+#endif

@@ -1,6 +1,10 @@
 import SwiftUI
 
-/// A system-like, pre-built camera view.
+/// A system-like, pre-built camera experience.
+///
+/// This view is only for iOS and iPadOS. It doesn't support macOS.
+/// - note: If your app supports multiple orientation,  ``AppOrientationDelegate`` should be added to your `App` declaration via `@UIApplicationDelegateAdaptor` to obtain correct behavior.
+@available(macOS, unavailable)
 public struct SystemCameraExperience: View {
     var action: (Data) -> Void
     @Environment(Camera.self) private var camera

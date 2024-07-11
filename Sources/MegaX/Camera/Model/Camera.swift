@@ -4,7 +4,6 @@ import AVFoundation
 import OSLog
 
 @Observable
-@available(macOS, unavailable)
 public final class Camera: NSObject {
     @ObservationIgnored internal let logger = Logger(subsystem: "MEGAX", category: "Camera")
     
@@ -94,8 +93,11 @@ public final class Camera: NSObject {
             
             configureAutoLensSwitching()
             configurePhotoOutput()
+            
+            #if (os(iOS) || os(tvOS)) && !targetEnvironment(macCatalyst)
             configureMultitaskAccess()
             configurePreferedStabilizationMode()
+            #endif
         }
     }
 
@@ -153,12 +155,14 @@ public final class Camera: NSObject {
                 // Auto-switching between lens
                 configureAutoLensSwitching()
                 
+                #if os(iOS) || os(tvOS)
                 // Set zoom for new device
                 // Use main camera for rear camera(s)
                 // Use 8MP by default for front camera
                 setZoomFactor(
                     isBackCamera ? backCameraDefaultZoomFactor : frontCameraDefaultZoomFactor
                 )
+                #endif
             } else {
                 session.addInput(self.videoDeviceInput)
             }
@@ -200,11 +204,12 @@ public final class Camera: NSObject {
     }
     
     // MARK: - Zoom
-    internal(set) var zoomFactor: CGFloat = 1
-    internal(set) var backCameraOpticalZoomFactors: [CGFloat] = []
-    internal(set) var backCameraDefaultZoomFactor: CGFloat = 1
-    internal(set) var frontCameraDefaultZoomFactor: CGFloat = 1
+    internal(set) public var zoomFactor: CGFloat = 1
+    internal var backCameraOpticalZoomFactors: [CGFloat] = []
+    internal var backCameraDefaultZoomFactor: CGFloat = 1
+    internal var frontCameraDefaultZoomFactor: CGFloat = 1
     
+    #if os(iOS) || os(tvOS)
     func setZoomFactor(
         _ zoomFactor: CGFloat,
         withRate rate: Float? = nil,
@@ -225,10 +230,12 @@ public final class Camera: NSObject {
             }
         }
     }
+    #endif
     
     // MARK: - Focus
     var focusLocked = false
     
+    #if os(iOS) || os(tvOS)
     func setManualFocus(pointOfInterst: CGPoint, focusMode: AVCaptureDevice.FocusMode, exposureMode: AVCaptureDevice.ExposureMode) {
         configureCaptureDevice { device in
             guard device.isFocusPointOfInterestSupported,
@@ -252,6 +259,7 @@ public final class Camera: NSObject {
             device.isSubjectAreaChangeMonitoringEnabled = !locked
         }
     }
+    #endif
     
     // MARK: - Capture
     public func capturePhoto(completionHandler: @escaping (Data) -> Void) {
@@ -280,10 +288,24 @@ public final class Camera: NSObject {
     }
     
     // MARK: - Helper Methods
-    private func findDevice(preferedDeviceTypes: [AVCaptureDevice.DeviceType]? = nil, position: AVCaptureDevice.Position) -> AVCaptureDevice? {
+    @available(watchOS, unavailable)
+    @available(visionOS, unavailable)
+    private func findDevice(
+        preferedDeviceTypes: [AVCaptureDevice.DeviceType]? = nil,
+        position: AVCaptureDevice.Position
+    ) -> AVCaptureDevice? {
+        #if os(macOS)
+        var deviceTypes = preferedDeviceTypes ?? [.builtInWideAngleCamera, .continuityCamera]
+        #else
         var deviceTypes = preferedDeviceTypes ?? [.builtInTripleCamera, .builtInDualCamera, .builtInDualWideCamera, .builtInWideAngleCamera]
-        if #available(iOS 18, *), configuration.preferConstantColor {
+        #endif
+        if #available(iOS 18.0, macOS 15.0, tvOS 18.0, macCatalyst 18.0, *),
+            configuration.preferConstantColor {
+            #if os(macOS)
+            deviceTypes = [.builtInWideAngleCamera]
+            #else
             deviceTypes = [.builtInDualWideCamera, .builtInWideAngleCamera]
+            #endif
         }
         
         let discoverySession = AVCaptureDevice.DiscoverySession(
@@ -345,24 +367,26 @@ public final class Camera: NSObject {
             configurePhotoOutput()
         }
         
-        configureAvailableOpticalZoomsAndDefaultZoomsForCameras()
-        
         let readinessCoordinator = AVCapturePhotoOutputReadinessCoordinator(photoOutput: photoOutput)
         DispatchQueue.main.async {
             self.readinessCoordinator = readinessCoordinator
             readinessCoordinator.delegate = self
         }
         
+        #if (os(iOS) || os(tvOS)) && !targetEnvironment(macCatalyst)
+        configureAvailableOpticalZoomsAndDefaultZoomsForCameras()
         configureMultitaskAccess()
         configurePreferedStabilizationMode()
+        #endif
     }
-    
+   
     private func configureAutoLensSwitching(enabled: Bool? = nil) {
         configureCaptureDevice { device in
+            #if os(iOS)
             if let wideCameraZF = device.virtualDeviceSwitchOverVideoZoomFactors.first {
                 self.setZoomFactor(CGFloat(truncating: wideCameraZF), animation: nil)
             }
-            
+            #endif
             guard !device.fallbackPrimaryConstituentDevices.isEmpty else { return }
             let enabled = enabled ?? self.configuration.autoSwitchingLens
             device.setPrimaryConstituentDeviceSwitchingBehavior(
@@ -372,15 +396,17 @@ public final class Camera: NSObject {
         }
     }
     
-    private func configurePhotoOutput() {        
+    private func configurePhotoOutput() {
         photoOutput.maxPhotoQualityPrioritization = .quality
         
         let supportedMaxDimensions = self.videoDeviceInput.device.activeFormat.supportedMaxPhotoDimensions
         photoOutput.maxPhotoDimensions = supportedMaxDimensions.last!
         
+        #if os(iOS) && !targetEnvironment(macCatalyst)
         if photoOutput.isAutoDeferredPhotoDeliverySupported {
             photoOutput.isAutoDeferredPhotoDeliveryEnabled = configuration.preferAutoDeferredPhotoDelivery
         }
+        #endif
         if photoOutput.isZeroShutterLagSupported {
             photoOutput.isZeroShutterLagEnabled = configuration.preferZeroShutterLag
         }
@@ -422,14 +448,16 @@ public final class Camera: NSObject {
             }
         } while false
         
+        #if !os(macOS)
         if let previewPhotoPixelFormatType = photoSettings.availablePreviewPhotoPixelFormatTypes.first {
             photoSettings.previewPhotoFormat = [kCVPixelBufferPixelFormatTypeKey as String: previewPhotoPixelFormatType]
         }
+        #endif
         
         return photoSettings
     }
     
-    @MainActor 
+    @MainActor
     private func createDeviceRotationCoordinator() {
         let videoPreviewLayer = cameraPreview.preview.videoPreviewLayer
         videoDeviceRotationCoordinator = AVCaptureDevice.RotationCoordinator(device: videoDeviceInput.device, previewLayer: videoPreviewLayer)
@@ -488,6 +516,7 @@ public final class Camera: NSObject {
         }
     }
     
+    #if os(iOS) || os(tvOS)
     private func configureAvailableOpticalZoomsAndDefaultZoomsForCameras() {
         if let backCamera = findDevice(position: .back) {
             var backCameraOpticalZoomFactors = backCamera
@@ -525,6 +554,7 @@ public final class Camera: NSObject {
         }
     }
     
+    @available(macCatalyst, unavailable)
     private func configureMultitaskAccess() {
         if session.isMultitaskingCameraAccessSupported {
             session.isMultitaskingCameraAccessEnabled = configuration.captureWhenMultiTasking
@@ -532,11 +562,10 @@ public final class Camera: NSObject {
     }
     
     private func configurePreferedStabilizationMode() {
-        #if os(iOS)
         for connection in session.connections {
             guard connection.isVideoStabilizationSupported else { continue }
             connection.preferredVideoStabilizationMode = configuration.stabilizationMode
         }
-        #endif
     }
+    #endif
 }
