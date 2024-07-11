@@ -114,11 +114,18 @@ public final class Camera: NSObject {
             self = self == .front ? .back : .front
         }
     }
+    #if os(macOS) || targetEnvironment(macCatalyst)
+    internal(set) public var cameraSide: CameraSide = .front
+    #else
     internal(set) public var cameraSide: CameraSide = .back
+    #endif
     internal var isFrontCamera: Bool { cameraSide == .front }
     internal var isBackCamera: Bool { cameraSide == .back }
     private var toggleCameraTask: Task<Void, Error>?
     
+    @available(macOS, unavailable)
+    @available(macCatalyst, unavailable)
+    @available(tvOS, unavailable)
     func toggleCamera() {
         shutterDisabled = true
         sessionState = .committing
