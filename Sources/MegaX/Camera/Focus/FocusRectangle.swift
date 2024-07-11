@@ -2,6 +2,8 @@ import SwiftUI
 import AVFoundation
 
 @available(macOS, unavailable)
+@available(visionOS, unavailable)
+@available(watchOS, unavailable)
 struct FocusRectangle: View {
     enum FocusMode: Sendable, Equatable {
         case autoFocus

@@ -1,6 +1,9 @@
 import SwiftUI
 
 /// A view that represents the current scene captured from the camera sensor.
+@available(watchOS, unavailable)
+@available(visionOS, unavailable)
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
 public struct ViewFinder: View {
     var includingOpticalZoomButtons: Bool
     
@@ -16,6 +19,9 @@ public struct ViewFinder: View {
     }
     
     public var body: some View {
+        #if os(watchOS) || os(visionOS)
+        fatalError("Current Operating System doesn't support ViewFinder.")
+        #else
         @Bindable var camera = camera
         camera.cameraPreview
             .blur(radius: camera.sessionState == .running ? 0 : 15, opaque: true)
@@ -81,5 +87,6 @@ public struct ViewFinder: View {
                     }
                     .opacity(isPhone ? 1 : 0)
             }
+        #endif
     }
 }

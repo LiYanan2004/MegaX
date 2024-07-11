@@ -1,5 +1,8 @@
 import SwiftUI
 
+@available(watchOS, unavailable)
+@available(visionOS, unavailable)
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
 public struct ShutterButton: View {
     var action: (Data) -> Void
     @Environment(Camera.self) private var camera
@@ -51,6 +54,7 @@ public struct ShutterButton: View {
     }
 }
 
+#if !os(watchOS) && !os(visionOS)
 #Preview {
     CameraView { camera in
         ShutterButton { photo in
@@ -58,3 +62,4 @@ public struct ShutterButton: View {
         }
     }
 }
+#endif

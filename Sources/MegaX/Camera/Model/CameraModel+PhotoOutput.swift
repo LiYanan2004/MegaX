@@ -1,6 +1,8 @@
 import SwiftUI
 import AVFoundation
 
+@available(watchOS, unavailable)
+@available(visionOS, unavailable)
 extension Camera: AVCapturePhotoCaptureDelegate {
     public func photoOutput(_ output: AVCapturePhotoOutput, willCapturePhotoFor resolvedSettings: AVCaptureResolvedPhotoSettings) {
         // Fully dim the preview and show it back.

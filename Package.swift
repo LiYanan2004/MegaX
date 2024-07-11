@@ -8,6 +8,8 @@ let package = Package(
     platforms: [
         .iOS(.v17),
         .macOS(.v14),
+        .watchOS(.v10),
+        .tvOS(.v17)
     ],
     products: [
         .library(name: "MegaX", targets: ["MegaX"]),

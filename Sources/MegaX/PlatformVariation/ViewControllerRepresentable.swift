@@ -8,6 +8,7 @@ typealias PlatformViewController = UIViewController
 typealias _PlatformViewControllerRepresentable = UIViewControllerRepresentable
 #endif
 
+#if !os(watchOS) && !os(visionOS)
 protocol PlatformViewControllerRepresentable: _PlatformViewControllerRepresentable {
     associatedtype PlatformViewControllerType: PlatformViewController
     func makePlatformViewController(context: Context) -> PlatformViewControllerType
@@ -34,3 +35,4 @@ extension PlatformViewControllerRepresentable {
     }
     #endif
 }
+#endif

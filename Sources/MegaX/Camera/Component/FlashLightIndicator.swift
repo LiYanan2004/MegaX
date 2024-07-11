@@ -1,6 +1,9 @@
 import SwiftUI
 import AVFoundation
 
+@available(watchOS, unavailable)
+@available(visionOS, unavailable)
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
 public struct FlashLightIndicator: View {
     @Environment(Camera.self) private var camera
     @Environment(\.deviceType) private var deviceType

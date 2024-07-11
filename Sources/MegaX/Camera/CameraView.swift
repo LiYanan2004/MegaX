@@ -4,6 +4,7 @@ import AVFoundation
 /// A view that holds a camera object and enables you to build a fully customized camera experience.
 @available(visionOS, unavailable)
 @available(watchOS, unavailable)
+@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
 public struct CameraView<Content: View>: View {
     var errorHandler: ((_ error: CameraError) -> Void)?
     @ViewBuilder var content: (Camera) -> Content
@@ -14,6 +15,7 @@ public struct CameraView<Content: View>: View {
     /// Creates a customized camera experience.
     /// - Parameters:
     ///     - errorHandler: The action to perform when error occurs.
+    ///     - content: The view builder that creates a customized camera experience.
     public init(
         errorHandler: ((CameraError) -> Void)? = nil,
         @ViewBuilder content: @escaping (Camera) -> Content
@@ -47,6 +49,7 @@ public struct CameraView<Content: View>: View {
     }
 }
 
+#if !os(watchOS) && !os(visionOS)
 #Preview {
     CameraView { error in
         switch error {
@@ -64,3 +67,4 @@ public struct CameraView<Content: View>: View {
         }
     }
 }
+#endif

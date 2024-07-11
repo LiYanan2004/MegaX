@@ -4,6 +4,8 @@ import AVFoundation
 import OSLog
 
 @Observable
+@available(watchOS, unavailable)
+@available(visionOS, unavailable)
 public final class Camera: NSObject {
     @ObservationIgnored internal let logger = Logger(subsystem: "MEGAX", category: "Camera")
     
@@ -32,9 +34,11 @@ public final class Camera: NSObject {
     internal var photoOutput = AVCapturePhotoOutput()
     
     // MARK: - Camera Experience
+    #if !os(watchOS) && !os(watchOS)
     @MainActor @ObservationIgnored lazy var cameraPreview: CameraPreview = {
         CameraPreview(session: session)
     }()
+    #endif
     @ObservationIgnored private var videoDeviceRotationCoordinator: AVCaptureDevice.RotationCoordinator!
     @ObservationIgnored private var videoRotationAngleForHorizonLevelPreviewObservation: NSKeyValueObservation?
     @ObservationIgnored private var videoRotationAngleForHorizonLevelCaptureObservation: NSKeyValueObservation?
@@ -135,6 +139,7 @@ public final class Camera: NSObject {
     }
     
     private func _toggleCamera(to videoDevice: AVCaptureDevice?) {
+        #if !os(watchOS) && !os(visionOS)
         sessionQueue.async { [self] in
             session.beginConfiguration()
 
@@ -201,6 +206,7 @@ public final class Camera: NSObject {
                 }
             }
         }
+        #endif
     }
     
     // MARK: - Zoom
@@ -399,8 +405,10 @@ public final class Camera: NSObject {
     private func configurePhotoOutput() {
         photoOutput.maxPhotoQualityPrioritization = .quality
         
+        #if !os(watchOS) && !os(visionOS)
         let supportedMaxDimensions = self.videoDeviceInput.device.activeFormat.supportedMaxPhotoDimensions
         photoOutput.maxPhotoDimensions = supportedMaxDimensions.last!
+        #endif
         
         #if os(iOS) && !targetEnvironment(macCatalyst)
         if photoOutput.isAutoDeferredPhotoDeliverySupported {
@@ -426,11 +434,13 @@ public final class Camera: NSObject {
     private func createPhotoSettings() -> AVCapturePhotoSettings {
         let photoSettings = AVCapturePhotoSettings()
         photoSettings.maxPhotoDimensions = self.photoOutput.maxPhotoDimensions
+        #if !os(watchOS) && !os(visionOS)
         if photoOutput.supportedFlashModes.contains(flashMode) {
             photoSettings.flashMode = flashMode
         } else {
             self.flashMode = .off
         }
+        #endif
         
         repeat {
             if #available(iOS 18.0, macOS 15.0, tvOS 18.0, macCatalyst 18.0, *),
@@ -459,6 +469,7 @@ public final class Camera: NSObject {
     
     @MainActor
     private func createDeviceRotationCoordinator() {
+        #if !os(watchOS)
         let videoPreviewLayer = cameraPreview.preview.videoPreviewLayer
         videoDeviceRotationCoordinator = AVCaptureDevice.RotationCoordinator(device: videoDeviceInput.device, previewLayer: videoPreviewLayer)
         videoPreviewLayer.connection?.videoRotationAngle = videoDeviceRotationCoordinator.videoRotationAngleForHorizonLevelPreview
@@ -475,6 +486,7 @@ public final class Camera: NSObject {
                 self.setInterfaceRotationAngle(videoRotationAngleForHorizonLevelCapture)
             }
         }
+        #endif
     }
     
     @MainActor

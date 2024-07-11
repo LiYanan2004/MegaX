@@ -6,6 +6,9 @@ typealias _PlatformViewRepresentable = NSViewRepresentable
 #elseif os(iOS) || os(tvOS)
 typealias PlatformView = UIView
 typealias _PlatformViewRepresentable = UIViewRepresentable
+#elseif os(watchOS)
+typealias PlatformView = WKInterfaceObject
+typealias _PlatformViewRepresentable = WKInterfaceObjectRepresentable
 #endif
 
 protocol PlatformViewRepresentable: _PlatformViewRepresentable {
@@ -15,7 +18,7 @@ protocol PlatformViewRepresentable: _PlatformViewRepresentable {
 }
 
 extension PlatformViewRepresentable {
-    #if canImport(UIKit)
+    #if os(iOS) || os(tvOS)
     func makeUIView(context: Context) -> PlatformViewType {
         makePlatformView(context: context)
     }
@@ -23,14 +26,20 @@ extension PlatformViewRepresentable {
     func updateUIView(_ uiView: PlatformViewType, context: Context) {
         updatePlatformView(uiView, context: context)
     }
-
-    #elseif canImport(AppKit)
+    #elseif os(macOS)
     func makeNSView(context: Context) -> PlatformViewType {
         makePlatformView(context: context)
     }
 
     func updateNSView(_ nsView: PlatformViewType, context: Context) {
         updatePlatformView(nsView, context: context)
+    }
+    #elseif os(watchOS)
+    func makeWKInterfaceObject(context: Context) -> PlatformViewType {
+        makePlatformView(context: context)
+    }
+    func updateWKInterfaceObject(_ wkInterfaceObject: PlatformViewType, context: Context) {
+        updatePlatformView(wkInterfaceObject, context: context)
     }
     #endif
 }
