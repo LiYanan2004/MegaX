@@ -3,7 +3,7 @@ import SwiftUI
 @available(macOS, unavailable)
 struct CameraOpticalZoomOptionsBox: View {
     @State private var showDefault = true
-    @Environment(CameraModel.self) private var model
+    @Environment(Camera.self) private var model
     private var backCameraOpticalFactors: [CGFloat] {
         model.backCameraOpticalZoomFactors
     }
@@ -36,7 +36,7 @@ struct CameraOpticalZoomOptionsBox: View {
                 .padding(12)
                 .background(.black.secondary, in: .circle)
         }
-        .buttonStyle(.shutter)
+        .buttonStyle(.responsive)
         .rotationEffect(.degrees(model.interfaceRotationAngle))
         .onAppear { showDefault = true }
     }
@@ -87,7 +87,7 @@ struct CameraOpticalZoomOptionButton: View {
     var defaultSelection: Bool
     var showDefault: Bool
     
-    @Environment(CameraModel.self) private var model
+    @Environment(Camera.self) private var model
     @ScaledMetric(relativeTo: .headline) private var size = 28
     private var currentZoomFactor: CGFloat {
         #if targetEnvironment(simulator)
@@ -150,13 +150,13 @@ struct CameraOpticalZoomOptionButton: View {
                     .minimumScaleFactor(0.8)
                 }
         }
-        .buttonStyle(.shutter)
+        .buttonStyle(.responsive)
     }
 }
 
 #if os(iOS)
 #Preview {
     CameraOpticalZoomOptionsBox()
-        .environment(CameraModel())
+        .environment(Camera())
 }
 #endif
