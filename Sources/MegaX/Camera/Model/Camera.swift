@@ -10,7 +10,6 @@ public final class Camera: NSObject {
     // MARK: Custom delegates & configurations
     @ObservationIgnored internal var errorHandler: ((CameraError) -> Void)?
     @ObservationIgnored internal var configuration = CameraCaptureConfiguration()
-    @ObservationIgnored internal var captureContinuation: CheckedContinuation<Data, Never>?
     
     // MARK: UI states
     @MainActor internal var photoData: Data?
@@ -279,18 +278,16 @@ public final class Camera: NSObject {
         let videoRotationAngle = self.videoDeviceRotationCoordinator.videoRotationAngleForHorizonLevelCapture
         
         Task {
-            let capturedPhotoData = await withCheckedContinuation { (continuation: CheckedContinuation<Data, Never>) in
-                self.captureContinuation = continuation
-            }
-            completionHandler(capturedPhotoData)
-        }
-        
-        sessionQueue.async { [self] in
             if let photoOutputConnection = self.photoOutput.connection(with: .video) {
                 photoOutputConnection.videoRotationAngle = videoRotationAngle
             }
-            photoOutput.capturePhoto(with: photoSettings, delegate: self)
-            readinessCoordinator.stopTrackingCaptureRequest(using: photoSettings.uniqueID)
+            let processor = PhotoProcessor()
+            let capturedPhotoData = await withCheckedContinuation { (continuation: CheckedContinuation<Data, Never>) in
+                processor.setup(continuation: continuation, camera: self)
+                photoOutput.capturePhoto(with: photoSettings, delegate: processor)
+                readinessCoordinator.stopTrackingCaptureRequest(using: photoSettings.uniqueID)
+            }
+            completionHandler(capturedPhotoData)
         }
     }
     
