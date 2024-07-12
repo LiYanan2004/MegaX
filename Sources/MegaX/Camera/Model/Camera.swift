@@ -294,10 +294,8 @@ public final class Camera: NSObject {
     // MARK: - Helper Methods
     @available(watchOS, unavailable)
     @available(visionOS, unavailable)
-    private func findDevice(
-        preferedDeviceTypes: [AVCaptureDevice.DeviceType]? = nil,
-        position: AVCaptureDevice.Position
-    ) -> AVCaptureDevice? {
+    private func findDevice(position: AVCaptureDevice.Position) -> AVCaptureDevice? {
+        let preferedDeviceTypes = configuration.captureDeviceTypes
         #if os(macOS)
         var deviceTypes = preferedDeviceTypes ?? [.builtInWideAngleCamera, .continuityCamera]
         #else
@@ -405,7 +403,7 @@ public final class Camera: NSObject {
     }
     
     private func configurePhotoOutput() {
-        photoOutput.maxPhotoQualityPrioritization = .quality
+        photoOutput.maxPhotoQualityPrioritization = configuration.preferedQualityPrioritization
         
         let supportedMaxDimensions = self.videoDeviceInput.device.activeFormat.supportedMaxPhotoDimensions
         photoOutput.maxPhotoDimensions = supportedMaxDimensions.last!
@@ -434,7 +432,7 @@ public final class Camera: NSObject {
     private func createPhotoSettings() -> AVCapturePhotoSettings {
         let photoSettings = AVCapturePhotoSettings()
         photoSettings.maxPhotoDimensions = self.photoOutput.maxPhotoDimensions
-        photoSettings.maxPhotoDimensions = self.photoOutput.maxPhotoDimensions
+        photoSettings.photoQualityPrioritization = configuration.preferedQualityPrioritization
         if photoOutput.supportedFlashModes.contains(flashMode) {
             photoSettings.flashMode = flashMode
         } else {
