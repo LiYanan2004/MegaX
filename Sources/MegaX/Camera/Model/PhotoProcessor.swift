@@ -1,17 +1,58 @@
 import SwiftUI
-import AVFoundation
+@preconcurrency import AVFoundation
+
+public enum CapturedPhoto: Sendable {
+    case photo(AVCapturePhoto)
+    #if os(iOS) && !targetEnvironment(macCatalyst)
+    case proxyPhoto(AVCaptureDeferredPhotoProxy)
+    #endif
+    
+    public var underlyingPhotoObject: AVCapturePhoto {
+        switch self {
+        case .photo(let photo): photo
+        #if os(iOS) && !targetEnvironment(macCatalyst)
+        case .proxyPhoto(let photo): photo
+        #endif
+        }
+    }
+    
+    public var dataRepresentation: Data? {
+        switch self {
+        case .photo(let photo): photo.fileDataRepresentation()
+        #if os(iOS) && !targetEnvironment(macCatalyst)
+        case .proxyPhoto(let photo): photo.fileDataRepresentation()
+        #endif
+        }
+    }
+    
+    #if canImport(UIKit)
+    public var uiimage: UIImage? {
+        if let dataRepresentation {
+            return UIImage(data: dataRepresentation)
+        }
+        return nil
+    }
+    #elseif canImport(AppKit)
+    public var nsimage: NSImage? {
+        if let dataRepresentation {
+            return NSImage(data: dataRepresentation)
+        }
+        return nil
+    }
+    #endif
+}
 
 class PhotoProcessor: NSObject, AVCapturePhotoCaptureDelegate {
-    private var continuation: CheckedContinuation<Data, Never>!
+    private var continuation: CheckedContinuation<CapturedPhoto, Never>!
     private weak var camera: Camera?
-    private var capturedPhoto: Data? {
+    private var capturedPhoto: CapturedPhoto? {
         willSet {
             guard let newValue else { return }
             continuation.resume(returning: newValue)
         }
     }
     
-    func setup(continuation: CheckedContinuation<Data, Never>, camera: Camera) {
+    func setup(continuation: CheckedContinuation<CapturedPhoto, Never>, camera: Camera) {
         self.continuation = continuation
         self.camera = camera
     }
@@ -31,7 +72,7 @@ class PhotoProcessor: NSObject, AVCapturePhotoCaptureDelegate {
             return
         }
         
-        capturedPhoto = photo.fileDataRepresentation()
+        capturedPhoto = .photo(photo)
     }
     
     #if os(iOS) && !targetEnvironment(macCatalyst)
@@ -42,7 +83,9 @@ class PhotoProcessor: NSObject, AVCapturePhotoCaptureDelegate {
             return
         }
         
-        capturedPhoto = deferredPhotoProxy?.fileDataRepresentation()
+        if let deferredPhotoProxy {
+            capturedPhoto = .photo(deferredPhotoProxy)
+        }
     }
     #endif
 }

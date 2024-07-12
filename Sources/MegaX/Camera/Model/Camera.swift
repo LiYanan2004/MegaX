@@ -268,7 +268,7 @@ public final class Camera: NSObject {
     #endif
     
     // MARK: - Capture
-    public func capturePhoto(completionHandler: @escaping (Data) -> Void) {
+    public func capturePhoto(completionHandler: @escaping (CapturedPhoto) -> Void) {
         #if targetEnvironment(simulator)
         return 
         #endif
@@ -282,7 +282,7 @@ public final class Camera: NSObject {
                 photoOutputConnection.videoRotationAngle = videoRotationAngle
             }
             let processor = PhotoProcessor()
-            let capturedPhotoData = await withCheckedContinuation { (continuation: CheckedContinuation<Data, Never>) in
+            let capturedPhotoData = await withCheckedContinuation { (continuation: CheckedContinuation<CapturedPhoto, Never>) in
                 processor.setup(continuation: continuation, camera: self)
                 photoOutput.capturePhoto(with: photoSettings, delegate: processor)
                 readinessCoordinator.stopTrackingCaptureRequest(using: photoSettings.uniqueID)
@@ -433,6 +433,7 @@ public final class Camera: NSObject {
     
     private func createPhotoSettings() -> AVCapturePhotoSettings {
         let photoSettings = AVCapturePhotoSettings()
+        photoSettings.maxPhotoDimensions = self.photoOutput.maxPhotoDimensions
         photoSettings.maxPhotoDimensions = self.photoOutput.maxPhotoDimensions
         if photoOutput.supportedFlashModes.contains(flashMode) {
             photoSettings.flashMode = flashMode
