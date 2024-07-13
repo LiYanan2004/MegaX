@@ -1,6 +1,8 @@
 import SwiftUI
 @preconcurrency import AVFoundation
 
+@available(visionOS, unavailable)
+@available(watchOS, unavailable)
 public enum CapturedPhoto: Sendable {
     case photo(AVCapturePhoto)
     #if os(iOS) && !targetEnvironment(macCatalyst)
@@ -42,7 +44,9 @@ public enum CapturedPhoto: Sendable {
     #endif
 }
 
-class PhotoProcessor: NSObject, AVCapturePhotoCaptureDelegate {
+@available(visionOS, unavailable)
+@available(watchOS, unavailable)
+final class PhotoProcessor: NSObject, AVCapturePhotoCaptureDelegate {
     private var continuation: CheckedContinuation<CapturedPhoto, Never>!
     private weak var camera: Camera?
     private var capturedPhoto: CapturedPhoto? {
@@ -64,7 +68,8 @@ class PhotoProcessor: NSObject, AVCapturePhotoCaptureDelegate {
             camera?.dimCameraPreview = 0
         }
     }
-    
+
+    #if !os(visionOS)
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         if let error {
             camera?.logger.error("There is an error when finishing processing photo: \(error.localizedDescription)")
@@ -74,6 +79,7 @@ class PhotoProcessor: NSObject, AVCapturePhotoCaptureDelegate {
         
         capturedPhoto = .photo(photo)
     }
+    #endif
     
     #if os(iOS) && !targetEnvironment(macCatalyst)
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishCapturingDeferredPhotoProxy deferredPhotoProxy: AVCaptureDeferredPhotoProxy?, error: Error?) {

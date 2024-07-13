@@ -1,3 +1,4 @@
+#if !os(watchOS) && !os(visionOS)
 import SwiftUI
 import AVFoundation
 
@@ -15,6 +16,7 @@ struct CameraPreview: PlatformViewRepresentable {
         }
     }
 }
+#endif
 
 #if os(iOS)
 extension CameraPreview {

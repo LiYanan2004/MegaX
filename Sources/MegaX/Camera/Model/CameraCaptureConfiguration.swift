@@ -22,9 +22,11 @@ struct CameraCaptureConfiguration: Sendable, Equatable {
     var preferConstantColor = false
     /// A Boolean value that indicates whether to deliver a fallback photo when taking a constant color capture without enough confidence.
     var enableConstantColorFallbackDelivery = false
+    #if !os(watchOS) && !os(visionOS)
     /// Prefered capture device types.
     /// - note: By default, it uses composed device type or wide-angle camera.
     var captureDeviceTypes: [AVCaptureDevice.DeviceType]? = nil
     /// Determine how photo pipeline adjust the photo (reduce noise, sharper details and more.)
     var preferedQualityPrioritization = AVCapturePhotoOutput.QualityPrioritization.balanced
+    #endif
 }

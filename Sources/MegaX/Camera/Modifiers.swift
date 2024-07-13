@@ -16,7 +16,9 @@ extension View {
     @available(iOS 17.0, tvOS 17.0, macOS 14.0, *)
     public func captureDeviceTypes(_ deviceTypes: AVCaptureDevice.DeviceType...) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
+            #if !os(watchOS) && !os(visionOS)
             configuration.captureDeviceTypes = deviceTypes
+            #endif
         }
     }
     
@@ -28,7 +30,9 @@ extension View {
     @available(iOS 17.0, tvOS 17.0, macOS 14.0, *)
     public func captureQualityPrioritization(_ prioritization: AVCapturePhotoOutput.QualityPrioritization) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
+            #if !os(watchOS) && !os(visionOS)
             configuration.preferedQualityPrioritization = prioritization
+            #endif
         }
     }
     

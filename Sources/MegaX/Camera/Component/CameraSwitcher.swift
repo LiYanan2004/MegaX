@@ -6,7 +6,7 @@ import SwiftUI
 @available(tvOS, unavailable)
 @available(macOS, unavailable)
 @available(macCatalyst, unavailable)
-@available(iOS 17.0, *)
+@available(iOS 17.0, tvOS 17.0, *)
 public struct CameraSwitcher<Label: View>: View {
     @ViewBuilder var label: () -> Label
     @Environment(Camera.self) private var camera

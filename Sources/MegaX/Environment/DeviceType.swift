@@ -21,7 +21,7 @@ public enum DeviceType: Int, @unchecked Sendable {
     /// Unknown type of current device.
     case unspecified
     
-    #if canImport(UIKit)
+    #if os(iOS) || os(tvOS) || os(visionOS)
     internal init(userInterfaceIdom: UIUserInterfaceIdiom) {
         switch userInterfaceIdom {
         case .unspecified: self = .unspecified
