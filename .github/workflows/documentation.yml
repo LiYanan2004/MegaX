@@ -1,4 +1,5 @@
-name: worksapce
+name: Build documentation
+
 on:
   push:
     branches:
@@ -6,14 +7,18 @@ on:
       
 jobs:
   publish-doc:
-    runs-on: macos-14
+    runs-on: macos-latest
+    
     permissions:
       contents: write
+      
     steps:
-    - name: Get code
+    - name: Checkout code
       uses: actions/checkout@v4
-    - name: Switch Xcode Version
-      run: sudo xcode-select -switch /Applications/Xcode_15.2.app
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest
     - name: Build static site
       uses: sersoft-gmbh/swifty-docs-action@v3
       with:
@@ -23,7 +28,6 @@ jobs:
           transform-for-static-hosting: true
           hosting-base-path: ${{ github.event.repository.name }}
           output: docs
-          
     - name: Switch to gh-pages
       uses: rodrigorodriguescosta/checkout@main
       with:

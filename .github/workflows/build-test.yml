@@ -1,0 +1,43 @@
+name: Build for Apple Platforms
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    strategy:
+      matrix:
+        platform: [ios, macos, watchos, visionos]
+        include:
+          - platform: ios
+            sdk: iphonesimulator
+            destination: 'platform=iOS Simulator,name=iPhone 15 Pro'
+          - platform: macos
+            sdk: macosx
+            destination: 'platform=OS X'
+          # - platform: tvos
+          #   sdk: appletvsimulator
+          #   destination: 'platform=tvOS Simulator,name=Apple TV'
+          - platform: watchos
+            sdk: watchsimulator
+            destination: 'platform=watchOS Simulator,name=Apple Watch Ultra 2 (49mm)'
+          - platform: visionos
+            sdk: xros
+            destination: 'platform=visionOS Simulator,name=Apple Vision Pro'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest
+
+    - name: Build for ${{ matrix.platform }}
+      run: |
+        xcodebuild clean build \
+          -scheme MegaX \
+          -sdk ${{ matrix.sdk }} \
+          -destination '${{ matrix.destination }}' \
