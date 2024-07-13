@@ -23,7 +23,6 @@ extension PlatformViewRepresentable {
     func makeUIView(context: Context) -> PlatformViewType {
         makePlatformView(context: context)
     }
-
     func updateUIView(_ uiView: PlatformViewType, context: Context) {
         updatePlatformView(uiView, context: context)
     }
@@ -31,7 +30,6 @@ extension PlatformViewRepresentable {
     func makeNSView(context: Context) -> PlatformViewType {
         makePlatformView(context: context)
     }
-
     func updateNSView(_ nsView: PlatformViewType, context: Context) {
         updatePlatformView(nsView, context: context)
     }

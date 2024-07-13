@@ -14,8 +14,6 @@ extension View {
     ///
     /// - note: Be sure to contain `.builtInWideAngleCamera` as a fallback camera.
     @available(iOS 17.0, tvOS 17.0, macOS 14.0, *)
-    @available(visionOS, unavailable)
-    @available(watchOS, unavailable)
     public func captureDeviceTypes(_ deviceTypes: AVCaptureDevice.DeviceType...) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
             #if !os(watchOS) && !os(visionOS)
@@ -30,8 +28,6 @@ extension View {
     ///
     /// The better quality prioritization means it takes more time to process the photo.
     @available(iOS 17.0, tvOS 17.0, macOS 14.0, *)
-    @available(visionOS, unavailable)
-    @available(watchOS, unavailable)
     public func captureQualityPrioritization(_ prioritization: AVCapturePhotoOutput.QualityPrioritization) -> some View {
         transformEnvironment(\._captureConfiguration) { configuration in
             #if !os(watchOS) && !os(visionOS)
