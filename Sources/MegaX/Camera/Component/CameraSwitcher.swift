@@ -3,7 +3,10 @@ import SwiftUI
 /// A button that flips your camera view.
 @available(watchOS, unavailable)
 @available(visionOS, unavailable)
-@available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
+@available(tvOS, unavailable)
+@available(macOS, unavailable)
+@available(macCatalyst, unavailable)
+@available(iOS 17.0, tvOS 17.0, *)
 public struct CameraSwitcher<Label: View>: View {
     @ViewBuilder var label: () -> Label
     @Environment(Camera.self) private var camera
@@ -33,6 +36,9 @@ public struct CameraSwitcher<Label: View>: View {
 
 @available(watchOS, unavailable)
 @available(visionOS, unavailable)
+@available(tvOS, unavailable)
+@available(macOS, unavailable)
+@available(macCatalyst, unavailable)
 extension CameraSwitcher {
     /// Create a button that switches between rear camera and front camera.
     /// - parameters:
@@ -95,7 +101,7 @@ extension CameraSwitcher {
     }
 }
 
-#if !os(watchOS) && !os(visionOS)
+#if os(iOS) && !targetEnvironment(macCatalyst)
 #Preview {
     CameraView { _ in
         

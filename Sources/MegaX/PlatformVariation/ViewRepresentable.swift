@@ -11,6 +11,7 @@ typealias PlatformView = WKInterfaceObject
 typealias _PlatformViewRepresentable = WKInterfaceObjectRepresentable
 #endif
 
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
 protocol PlatformViewRepresentable: _PlatformViewRepresentable {
     associatedtype PlatformViewType: PlatformView
     func makePlatformView(context: Context) -> PlatformViewType
@@ -43,4 +44,4 @@ extension PlatformViewRepresentable {
     }
     #endif
 }
-
+#endif

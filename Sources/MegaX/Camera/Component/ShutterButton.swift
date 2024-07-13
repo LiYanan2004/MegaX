@@ -4,14 +4,15 @@ import SwiftUI
 @available(visionOS, unavailable)
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
 public struct ShutterButton: View {
-    var action: (Data) -> Void
+    var action: (CapturedPhoto) -> Void
+    
     @Environment(Camera.self) private var camera
     @State private var counter = 0
     
     /// Create a shutter button for photo capturing.
     /// - parameter action: The action to perform when captured photo arrives.
     /// - note: This view must be installed inside a ``CameraView``.
-    public init(action: @escaping (Data) -> Void) {
+    public init(action: @escaping (CapturedPhoto) -> Void) {
         self.action = action
     }
     

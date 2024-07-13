@@ -12,7 +12,6 @@ public final class Camera: NSObject {
     // MARK: Custom delegates & configurations
     @ObservationIgnored internal var errorHandler: ((CameraError) -> Void)?
     @ObservationIgnored internal var configuration = CameraCaptureConfiguration()
-    @ObservationIgnored internal var captureContinuation: CheckedContinuation<Data, Never>?
     
     // MARK: UI states
     @MainActor internal var photoData: Data?
@@ -34,7 +33,7 @@ public final class Camera: NSObject {
     internal var photoOutput = AVCapturePhotoOutput()
     
     // MARK: - Camera Experience
-    #if !os(watchOS) && !os(watchOS)
+    #if !os(watchOS) && !os(visionOS)
     @MainActor @ObservationIgnored lazy var cameraPreview: CameraPreview = {
         CameraPreview(session: session)
     }()
@@ -118,11 +117,18 @@ public final class Camera: NSObject {
             self = self == .front ? .back : .front
         }
     }
+    #if os(macOS) || targetEnvironment(macCatalyst)
+    internal(set) public var cameraSide: CameraSide = .front
+    #else
     internal(set) public var cameraSide: CameraSide = .back
+    #endif
     internal var isFrontCamera: Bool { cameraSide == .front }
     internal var isBackCamera: Bool { cameraSide == .back }
     private var toggleCameraTask: Task<Void, Error>?
     
+    @available(macOS, unavailable)
+    @available(macCatalyst, unavailable)
+    @available(tvOS, unavailable)
     func toggleCamera() {
         shutterDisabled = true
         sessionState = .committing
@@ -268,38 +274,38 @@ public final class Camera: NSObject {
     #endif
     
     // MARK: - Capture
-    public func capturePhoto(completionHandler: @escaping (Data) -> Void) {
-        #if targetEnvironment(simulator)
-        return 
-        #endif
+    public func capturePhoto(completionHandler: @escaping (CapturedPhoto) -> Void) {
+        #if !targetEnvironment(simulator)
         let photoSettings = createPhotoSettings()
         readinessCoordinator.startTrackingCaptureRequest(using: photoSettings)
         
         let videoRotationAngle = self.videoDeviceRotationCoordinator.videoRotationAngleForHorizonLevelCapture
         
         Task {
-            let capturedPhotoData = await withCheckedContinuation { (continuation: CheckedContinuation<Data, Never>) in
-                self.captureContinuation = continuation
-            }
-            completionHandler(capturedPhotoData)
-        }
-        
-        sessionQueue.async { [self] in
             if let photoOutputConnection = self.photoOutput.connection(with: .video) {
                 photoOutputConnection.videoRotationAngle = videoRotationAngle
             }
-            photoOutput.capturePhoto(with: photoSettings, delegate: self)
-            readinessCoordinator.stopTrackingCaptureRequest(using: photoSettings.uniqueID)
+            let processor = PhotoProcessor()
+            let capturedPhotoData = await withCheckedContinuation { (continuation: CheckedContinuation<CapturedPhoto, Never>) in
+                processor.setup(continuation: continuation, camera: self)
+                photoOutput.capturePhoto(with: photoSettings, delegate: processor)
+                readinessCoordinator.stopTrackingCaptureRequest(using: photoSettings.uniqueID)
+            }
+            completionHandler(capturedPhotoData)
         }
+        #endif
     }
     
     // MARK: - Helper Methods
     @available(watchOS, unavailable)
     @available(visionOS, unavailable)
-    private func findDevice(
-        preferedDeviceTypes: [AVCaptureDevice.DeviceType]? = nil,
-        position: AVCaptureDevice.Position
-    ) -> AVCaptureDevice? {
+    private func findDevice(position: AVCaptureDevice.Position) -> AVCaptureDevice? {
+        #if os(watchOS) || os(visionOS)
+        fatalError("Unsupported platforms.")
+        let preferedDeviceTypes: [AVCaptureDevice.DeviceType]? = nil
+        #else
+        let preferedDeviceTypes = configuration.captureDeviceTypes
+        #endif
         #if os(macOS)
         var deviceTypes = preferedDeviceTypes ?? [.builtInWideAngleCamera, .continuityCamera]
         #else
@@ -340,7 +346,11 @@ public final class Camera: NSObject {
         session.sessionPreset = .photo
         
         // Video device input
+        #if os(macOS) || targetEnvironment(macCatalyst)
+        let videoDevice = findDevice(position: .unspecified)
+        #else
         let videoDevice = findDevice(position: .back)
+        #endif
         guard let videoDevice else {
             logger.error("Cannot find an appropriate video device input.")
             return
@@ -403,9 +413,8 @@ public final class Camera: NSObject {
     }
     
     private func configurePhotoOutput() {
-        photoOutput.maxPhotoQualityPrioritization = .quality
-        
         #if !os(watchOS) && !os(visionOS)
+        photoOutput.maxPhotoQualityPrioritization = configuration.preferedQualityPrioritization
         let supportedMaxDimensions = self.videoDeviceInput.device.activeFormat.supportedMaxPhotoDimensions
         photoOutput.maxPhotoDimensions = supportedMaxDimensions.last!
         #endif
@@ -435,6 +444,7 @@ public final class Camera: NSObject {
         let photoSettings = AVCapturePhotoSettings()
         photoSettings.maxPhotoDimensions = self.photoOutput.maxPhotoDimensions
         #if !os(watchOS) && !os(visionOS)
+        photoSettings.photoQualityPrioritization = configuration.preferedQualityPrioritization
         if photoOutput.supportedFlashModes.contains(flashMode) {
             photoSettings.flashMode = flashMode
         } else {
@@ -469,7 +479,7 @@ public final class Camera: NSObject {
     
     @MainActor
     private func createDeviceRotationCoordinator() {
-        #if !os(watchOS)
+        #if !os(watchOS) && !os(visionOS)
         let videoPreviewLayer = cameraPreview.preview.videoPreviewLayer
         videoDeviceRotationCoordinator = AVCaptureDevice.RotationCoordinator(device: videoDeviceInput.device, previewLayer: videoPreviewLayer)
         videoPreviewLayer.connection?.videoRotationAngle = videoDeviceRotationCoordinator.videoRotationAngleForHorizonLevelPreview
@@ -581,3 +591,4 @@ public final class Camera: NSObject {
     }
     #endif
 }
+

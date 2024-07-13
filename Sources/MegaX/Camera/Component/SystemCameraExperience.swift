@@ -10,7 +10,7 @@ import SwiftUI
 @available(visionOS, unavailable)
 @available(iOS 17.0, tvOS 17.0, *)
 public struct SystemCameraExperience: View {
-    var action: (Data) -> Void
+    var action: (CapturedPhoto) -> Void
     @Environment(Camera.self) private var camera
     
     @Namespace private var namespace
@@ -20,7 +20,7 @@ public struct SystemCameraExperience: View {
     /// Create an automatic capture experience which is similar to system camera.
     /// - parameter action: The action to perform when captured photo arrives.
     /// - note: This view must be installed inside a ``CameraView``.
-    public init(action: @escaping (Data) -> Void) {
+    public init(action: @escaping (CapturedPhoto) -> Void) {
         self.action = action
     }
     
