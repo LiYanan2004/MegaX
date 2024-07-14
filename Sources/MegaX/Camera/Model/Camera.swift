@@ -455,7 +455,7 @@ public final class Camera: NSObject {
         repeat {
             if #available(iOS 18.0, macOS 15.0, tvOS 18.0, macCatalyst 18.0, *),
                configuration.preferConstantColor {
-                if photoOutput.isConstantColorEnabled == false {
+                if photoOutput.isConstantColorSupported == false {
                     logger.error("[Constant Color] Current device doesn't support constant color.")
                     break
                 } else if flashMode == .off {
