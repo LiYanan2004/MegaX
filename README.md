@@ -20,53 +20,72 @@ AsyncButton("Download", systemName: "arrow.down.circle") {
 
 ## CameraView
 
-When you need capture photos, **CameraView** comes in.
+An easy, fully customizable camera experience with the latest technology.
 
-**CameraView** is a system-like camera view with support for manual focus and exposure, zooming with gesture or with lens switcher.
+### Usage
 
-It automatically handles element orientation, but need developers to add `AppOrientationDelegate` to the App declaration.
+Create a simple, customized camera view.
 
 ```swift
-import SwiftUI
 import MegaX
+import SwiftUI
 
-@main
-struct MyCameraApp: App {
-    // This is needed, or the orientation behavior may be wired.
-    @UIApplicationDelegateAdaptor(AppOrientationDelegate.self) private var delegate
-
-    var body: some Scene {
-        WindowGroup {
-            CameraView { photoCaptured in
-                print("photoData: \(photoCaptured)")
-            ｝
+CameraView { _ in
+    VStack {
+        ViewFinder()
+        ShutterButton { photo in
+            // handle captured photo here.
         }
     }
 }
 ```
 
-You can also add a custom status bar and a photo album button.
+Use built-in view that optimized for iOS devices.
 
 ```swift
-CameraView { photoData in
-    print("Photo Captured")
-} photoAlbum: {
-    // A custom album button to display the lastest captured photo
-    RoundedRectangle(cornerRadius: 8)
-        .foregroundStyle(.fill.secondary)
-        .aspectRatio(contentMode: .fit)
-        .frame(height: 56)
+import MegaX
+import SwiftUI
+
+CameraView { _ in
+    SystemCameraExperience { photo in
+        // handle captured photo here.
+    }
 }
 ```
 
-If you want to customize the Camera, the available modifiers are
+A deeper customized camera view.
 
-- `autoDeferredPhotoDeliveryEnabled`
-- `zeroShutterLagEnabled`
-- `responsiveCaptureEnabled`
-- `fastCapturePrioritizationEnabled`
-- `captureWhenMultiTaskingEnabled`
-- `cameraStabilizationMode`
+```swift
+import MegaX
+import SwiftUI
+
+CameraView { _ in
+    VStack(spacing: 40) {
+        Rectangle()
+            .fill(.clear)
+            .overlay { ViewFinder() }
+            .aspectRatio(1 / 1.414, contentMode: .fit)
+            .clipShape(.rect(cornerRadius: 30))
+        
+        ShutterButton { photo in
+            // Handle captured photo.
+        }
+        .frame(maxWidth: .infinity)
+        .overlay(alignment: .trailing) {
+            CameraSwitcher()
+                .padding(12)
+                .background(.fill.tertiary, in: .circle)
+        }
+    }
+    .padding(40)
+    .background(.regularMaterial)
+    .clipShape(.rect(cornerRadius: 50))
+}
+.frame(maxHeight: .infinity, alignment: .bottom)
+.ignoresSafeArea()
+```
+
+For more information, check out full documentation and articles about CameraView.
 
 ## Backdrop Blur
 

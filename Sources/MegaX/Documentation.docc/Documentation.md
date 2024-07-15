@@ -1,16 +1,16 @@
 # ``MegaX``
 
-Less Code for developers, better Experience for both developers and users.
+Less code, better experience for both developers and users.
 
 ## Overview
 
-MegaX is a powerful tool set providing developers with many useful views and modifiers to accelerate their development.
+MegaX is a powerful tool set, providing developers with many useful views and modifiers to accelerate their development process.
 
 ## Topics
 
 ### Device Type
 
-- ``SwiftUI/EnvironmentValues/deviceType``
+- ``SwiftUICore/EnvironmentValues/deviceType``
 - ``DeviceType``
 
 ### Controls
@@ -20,26 +20,28 @@ MegaX is a powerful tool set providing developers with many useful views and mod
 ### Gestures
 
 - ``SpatialLongPressGesture``
-- ``SwiftUI/View/onLongPressGesture(minimumDuration:maximumDistance:coordinateSpace:perform:)``
+- ``SwiftUICore/View/onLongPressGesture(minimumDuration:maximumDistance:coordinateSpace:perform:)``
 
 ### Backdrop Blur Layer
 
-- ``SwiftUI/View/backdropBlur(_:smoothEdges:)``
+- ``SwiftUICore/View/backdropBlur(_:smoothEdges:)``
 - ``LayerTransparency``
 
 ### Camera
 
-- ``CameraView``
-- ``CameraError``
-- ``AppOrientationDelegate``
-- ``SwiftUI/View/autoDeferredPhotoDeliveryEnabled(_:)``
-- ``SwiftUI/View/zeroShutterLagEnabled(_:)``
-- ``SwiftUI/View/responsiveCaptureEnabled(_:)``
-- ``SwiftUI/View/fastCapturePrioritizationEnabled(_:)``
-- ``SwiftUI/View/captureWhenMultiTaskingEnabled(_:)``
-- ``SwiftUI/View/cameraStabilizationMode(_:)``
+- <doc:CameraUI>
+- <doc:BuildYourCameraUI>
+- <doc:CustomizeCameraExperience>
+- <doc:HandleCapturedContent>
+
+### Style
+
+**Button Style**
+
+- ``ResponsiveButtonStyle``
+- ``SwiftUICore/View/responsiveButton(minimumScale:onPressingChanged:)``
 
 ### Extensions For SwiftUI
 
-- ``SwiftUI/View/if(_:modified:)``
-- ``SwiftUI/View/if(_:modified:else:)``
+- ``SwiftUICore/View/if(_:modified:)``
+- ``SwiftUICore/View/if(_:modified:else:)``

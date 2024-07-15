@@ -3,6 +3,7 @@ import Observation
 import AVFoundation
 import OSLog
 
+/// An object reflecting the current camera status.
 @Observable
 @available(watchOS, unavailable)
 @available(visionOS, unavailable)
@@ -14,17 +15,22 @@ public final class Camera: NSObject {
     @ObservationIgnored internal var configuration = CameraCaptureConfiguration()
     
     // MARK: UI states
-    @MainActor internal var photoData: Data?
+    /// A boolean value indicates whether the shutter should be disabled.
     internal(set) public var shutterDisabled = false
+    /// A boolean value indicates system is busy processing caotured photo.
     internal(set) public var isBusyProcessing = false
     internal var dimCameraPreview = 0.0
+    /// Recommended rotation angle that respects to current device orientation.
+    /// - tips: Apply this angle to your controls if your app only support portait mode.
     internal(set) public var interfaceRotationAngle = Double.zero
     
     // MARK: - Capture Session
+    /// Constants that indicate current session status.
     public enum SessionState: Sendable {
         case running, notRunning, committing
     }
-    internal(set) public var sessionState: SessionState = .notRunning
+    /// Current state of the capture session.
+    public internal(set) var sessionState: SessionState = .notRunning
     
     internal let session = AVCaptureSession()
     private var sessionQueue = DispatchQueue(label: "com.liyanan2004.megax.sessionQueue")
@@ -46,10 +52,13 @@ public final class Camera: NSObject {
     
     // MARK: - Flash Light
     #if targetEnvironment(simulator)
+    /// A boolean value indicates whether the device has flash.
     public var currentDeviceHasFlash: Bool { true } // Enable flash indicator for preview
     #else
+    /// A boolean value indicates whether the device has flash.
     public var currentDeviceHasFlash: Bool { videoDevice?.hasFlash ?? false }
     #endif
+    /// Current flash mode used by the active capture device.
     public var flashMode: AVCaptureDevice.FlashMode = .auto
     
     // TODO: Macro Control
@@ -67,6 +76,7 @@ public final class Camera: NSObject {
         get async { await AVCaptureDevice.requestAccess(for: .video) }
     }
     
+    /// Configure session and start running the capture pipeline.
     public func startSession() {
         guard session.isRunning == false else { return }
         sessionQueue.async { [self] in
@@ -78,6 +88,7 @@ public final class Camera: NSObject {
         }
     }
     
+    /// Stop current capture session.
     public func stopSession() {
         guard session.isRunning else { return }
         sessionQueue.async { [self] in
@@ -105,8 +116,10 @@ public final class Camera: NSObject {
     }
 
     // MARK: - Toggle Camera
+    /// Constants that indicate the physical position of a capture device.
     public enum CameraSide: Sendable {
         case front, back
+        /// Equal representation of this value to `AVCaptureDevice.Position`.
         var position: AVCaptureDevice.Position {
             switch self {
             case .front: .front
@@ -118,8 +131,10 @@ public final class Camera: NSObject {
         }
     }
     #if os(macOS) || targetEnvironment(macCatalyst)
+    /// Current position of a capture device.
     internal(set) public var cameraSide: CameraSide = .front
     #else
+    /// Current position of a capture device.
     internal(set) public var cameraSide: CameraSide = .back
     #endif
     internal var isFrontCamera: Bool { cameraSide == .front }
@@ -216,6 +231,7 @@ public final class Camera: NSObject {
     }
     
     // MARK: - Zoom
+    /// Current zoom factor of the active device.
     internal(set) public var zoomFactor: CGFloat = 1
     internal var backCameraOpticalZoomFactors: [CGFloat] = []
     internal var backCameraDefaultZoomFactor: CGFloat = 1
@@ -245,7 +261,8 @@ public final class Camera: NSObject {
     #endif
     
     // MARK: - Focus
-    var focusLocked = false
+    /// A boolean value indicates whether the focus lock is enabled.
+    public internal(set) var focusLocked = false
     
     #if os(iOS) || os(tvOS)
     func setManualFocus(pointOfInterst: CGPoint, focusMode: AVCaptureDevice.FocusMode, exposureMode: AVCaptureDevice.ExposureMode) {
@@ -274,6 +291,8 @@ public final class Camera: NSObject {
     #endif
     
     // MARK: - Capture
+    /// Capture photo using current active device.
+    /// - parameter completionHandler: The action to perform after receiving captured photo.
     public func capturePhoto(completionHandler: @escaping (CapturedPhoto) -> Void) {
         #if !targetEnvironment(simulator)
         let photoSettings = createPhotoSettings()

@@ -1,6 +1,7 @@
 import SwiftUI
 import AVFoundation
 
+/// A toggle button that switches the flash mode of current capture device between on and off.
 @available(watchOS, unavailable)
 @available(visionOS, unavailable)
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)

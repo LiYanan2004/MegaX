@@ -1,6 +1,10 @@
 import SwiftUI
 
 extension View {
+    /// Sets the style for buttons within this view to a button style with a responsive button style.
+    /// - parameters:
+    ///     - minimumScale: The minimum scaling factor to reflect pressing state when user press the button.
+    ///     - onPressingChanged: The action to perform when pressing state changes.
     public func responsiveButton(
         minimumScale: CGFloat = 0.9,
         onPressingChanged: ((Bool) -> Void)? = nil
@@ -14,8 +18,11 @@ extension View {
     }
 }
 
+/// A button style that feels responsive by scaling its content when user press it.
 public struct ResponsiveButtonStyle: PrimitiveButtonStyle {
+    /// The minimum scaling factor to reflect pressing state when user press the button.
     var minimumScale: CGFloat
+    /// The action to perform when pressing state changes.
     var onPressingChanged: ((Bool) -> Void)?
     
     @Environment(\.isEnabled) private var isEnabled
@@ -23,6 +30,10 @@ public struct ResponsiveButtonStyle: PrimitiveButtonStyle {
     private var scale = CGFloat(1)
     @State private var isPressing = false
     
+    /// Creates a reponsive button style.
+    /// - parameters:
+    ///     - minimumScale: The minimum scaling factor to reflect pressing state when user press the button.
+    ///     - onPressingChanged: The action to perform when pressing state changes.
     public init(minimumScale: CGFloat = 0.9, onPressingChanged: ((Bool) -> Void)? = nil) {
         self.minimumScale = minimumScale
         self.onPressingChanged = onPressingChanged
@@ -57,8 +68,13 @@ public struct ResponsiveButtonStyle: PrimitiveButtonStyle {
 }
 
 extension PrimitiveButtonStyle where Self == ResponsiveButtonStyle {
+    /// A button style that feels responsive by scaling its content when user press it.
     public static var responsive: ResponsiveButtonStyle { .init() }
     
+    /// A button style that feels responsive by scaling its content when user press it.
+    /// - parameters:
+    ///     - minimumScale: The minimum scaling factor to reflect pressing state when user press the button.
+    ///     - onPressingChanged: The action to perform when pressing state changes.
     public static func responsive(minimumScale: CGFloat = 0.9, onPressingChanged: ((Bool) -> Void)? = nil) -> ResponsiveButtonStyle {
         .init(minimumScale: minimumScale, onPressingChanged: onPressingChanged)
     }

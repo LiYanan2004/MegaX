@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// A button that captures photo using current capture device.
 @available(watchOS, unavailable)
 @available(visionOS, unavailable)
 @available(iOS 17.0, macOS 14.0, tvOS 17.0, *)
