@@ -82,8 +82,9 @@ public struct AuxiliaryWindow: Scene {
             }
             #endif
         }
-        .windowStyle(.plain)
         .windowResizability(.contentSize)
+        #if os(macOS)
+        .windowStyle(.plain)
         .windowLevel(.floating)
         .defaultWindowPlacement { content, context in
             let visibleRect = context.defaultDisplay.visibleRect.size
@@ -93,7 +94,6 @@ public struct AuxiliaryWindow: Scene {
             )
             return WindowPlacement(.zero, size: visibleRect)
         }
-        #if os(macOS)
         .restorationBehavior(.disabled)
         .windowManagerRole(.associated)
         #endif
@@ -188,6 +188,11 @@ public struct AuxiliaryWindow: Scene {
 }
 
 extension EnvironmentValues {
+    @available(macOS 15.0, *)
+    @available(visionOS, unavailable)
+    @available(iOS, unavailable)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
     @Entry fileprivate var auxiliaryWindowBackgroundStyle: AnyShapeStyle = AnyShapeStyle(.windowBackground)
 }
 
@@ -195,6 +200,11 @@ extension Scene {
     /// Sets the background style for auxiliary window.
     ///
     /// Default style is `.windowBackground`.
+    @available(macOS 15.0, *)
+    @available(visionOS, unavailable)
+    @available(iOS, unavailable)
+    @available(tvOS, unavailable)
+    @available(watchOS, unavailable)
     public func auxiliaryWindowBackgroundStyle(_ style: some ShapeStyle) -> some Scene {
         environment(\.auxiliaryWindowBackgroundStyle, AnyShapeStyle(style))
     }
