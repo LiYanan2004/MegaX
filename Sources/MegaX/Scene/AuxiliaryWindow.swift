@@ -21,7 +21,7 @@ public struct AuxiliaryWindow: Scene {
     @Namespace private var auxiliary
     
     /// Creates an auxiliary window with a unique window identifier.
-    init(id: String) {
+    public init(id: String) {
         self.id = id
         _targetContext = State(wrappedValue: TargetContext.findTarget(id: id))
     }
