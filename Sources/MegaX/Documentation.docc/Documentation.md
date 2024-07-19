@@ -34,6 +34,11 @@ MegaX is a powerful tool set, providing developers with many useful views and mo
 - <doc:CustomizeCameraExperience>
 - <doc:HandleCapturedContent>
 
+### Scene
+
+- ``AuxiliaryWindow``
+- ``SwiftUICore/View/auxiliaryMenu(isPresented:windowID:content:)``
+
 ### Style
 
 **Button Style**
