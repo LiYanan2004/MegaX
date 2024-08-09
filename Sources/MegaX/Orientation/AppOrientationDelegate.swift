@@ -4,11 +4,11 @@ import SwiftUI
 /// An AppDelegate specifically focused on orientation management for application.
 ///
 /// If you have implemented your own `AppDelegate`, you can inherit from ``AppOrientationDelegate``, and be sure not to override the implementations of ``AppOrientationDelegate``
-public class AppOrientationDelegate: NSObject, UIApplicationDelegate {
+class AppOrientationDelegate: NSObject, UIApplicationDelegate {
     static var defaultOrientation = UIInterfaceOrientationMask.allButUpsideDown
     static var orientationLock = UIInterfaceOrientationMask.allButUpsideDown
     
-    public func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
         AppOrientationDelegate.orientationLock
     }
 }

@@ -29,6 +29,9 @@ public struct ResponsiveButtonStyle: PrimitiveButtonStyle {
     @GestureState(resetTransaction: .init(animation: .smooth(duration: 0.2)))
     private var scale = CGFloat(1)
     @State private var isPressing = false
+    @State private var labelSize = CGSize.zero
+    /// Ignore dragging updates if drag translation exceeds the thresholds.
+    @State private var ignoreChanges = false
     
     /// Creates a reponsive button style.
     /// - parameters:
@@ -42,28 +45,44 @@ public struct ResponsiveButtonStyle: PrimitiveButtonStyle {
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(scale)
+            .sizeOfView($labelSize)
             .simultaneousGesture(
                 DragGesture(minimumDistance: 0)
-                    .updating($scale) { _, scale, transaction in
+                    .updating($scale) { dragging, scale, transaction in
                         guard isEnabled else { return }
+                        guard !ignoreChanges else { return }
+                        
+                        // Check whether current location is out of bounds.
+                        let location = dragging.location
+                        let rect = CGRect(
+                            x: -70,
+                            y: -70,
+                            width: labelSize.width + 140,
+                            height: labelSize.height + 140
+                        )
+                        if rect.contains(location) == false {
+                            transaction.animation = .smooth(duration: 0.2)
+                            scale = 1
+                            ignoreChanges = true // Ignore further updates.
+                            isPressing = false
+                            return
+                        }
+                        
                         transaction.animation = .snappy(duration: 0.3)
                         scale = minimumScale
-                        Task {
-                            if isPressing == false {
-                                isPressing = true
-                                onPressingChanged?(true)
-                            }
-                        }
+                        isPressing = true
                     }
                     .onEnded { _ in
-                        guard isEnabled else { return }
-                        if isPressing {
+                        defer {
                             isPressing = false
-                            onPressingChanged?(false)
+                            ignoreChanges = false
                         }
+                        guard !ignoreChanges else { return }
+                        guard isEnabled else { return }
                         configuration.trigger()
                     }
             )
+            .onChange(of: isPressing) { onPressingChanged?(isPressing) }
     }
 }
 
@@ -81,8 +100,11 @@ extension PrimitiveButtonStyle where Self == ResponsiveButtonStyle {
 }
 
 #Preview {
+    @Previewable @State var disabled = false
+    
     Button {
         print("Action Triggered")
+        disabled.toggle()
     } label: {
         Circle()
             .frame(width: 60, height: 60)
@@ -95,4 +117,5 @@ extension PrimitiveButtonStyle where Self == ResponsiveButtonStyle {
             .stroke(lineWidth: 4)
             .frame(width: 68, height: 68)
     }
+    .disabled(disabled)
 }

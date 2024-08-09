@@ -93,8 +93,10 @@ public struct FlashLightIndicator: View {
                 camera.photoOutput.photoSettingsForSceneMonitoring = sceneMonitoringSetting
                 flashSceneObserver = camera.photoOutput.observe(\.isFlashScene, options: .new) { _, change in
                     guard let isFlashScene = change.newValue else { return }
-                    withAnimation(.smooth(duration: 0.2)) {
-                        self.isFlashScene = isFlashScene
+                    Task { @MainActor in
+                        withAnimation(.smooth(duration: 0.2)) {
+                            self.isFlashScene = isFlashScene
+                        }
                     }
                 }
                 #endif

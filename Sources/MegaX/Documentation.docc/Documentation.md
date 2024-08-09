@@ -39,6 +39,13 @@ MegaX is a powerful tool set, providing developers with many useful views and mo
 - ``AuxiliaryWindow``
 - ``SwiftUICore/View/auxiliaryMenu(isPresented:windowID:content:)``
 
+### Orientation
+
+- <doc:control-view-orientation>
+- ``FixedOrientationView``
+- ``SwiftUICore/View/counterRotationEffect(matching:)``
+- ``SwiftUICore/View/counterRotationAngle(_:matching:)``
+
 ### Style
 
 **Button Style**
