@@ -34,6 +34,14 @@ MegaX is a powerful tool set, providing developers with many useful views and mo
 - <doc:CustomizeCameraExperience>
 - <doc:HandleCapturedContent>
 
+### Orientation
+
+- <doc:control-view-orientation>
+- ``FixedOrientationView``
+- ``SwiftUICore/View/counterRotationEffect(matching:)``
+- ``SwiftUICore/View/counterRotationAngle(_:matching:)``
+
+
 ### Style
 
 **Button Style**
