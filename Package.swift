@@ -10,7 +10,6 @@ let package = Package(
         .macOS(.v14),
         .watchOS(.v10),
         .tvOS(.v17),
-        .visionOS(.v1)
     ],
     products: [
         .library(name: "MegaX", targets: ["MegaX"]),
