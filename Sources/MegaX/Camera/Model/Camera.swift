@@ -320,11 +320,10 @@ public final class Camera: NSObject {
     @available(visionOS, unavailable)
     private func findDevice(position: AVCaptureDevice.Position) -> AVCaptureDevice? {
         #if os(watchOS) || os(visionOS)
-        fatalError("Unsupported platforms.")
-        let preferedDeviceTypes: [AVCaptureDevice.DeviceType]? = nil
+        nil
         #else
         let preferedDeviceTypes = configuration.captureDeviceTypes
-        #endif
+
         #if os(macOS)
         var deviceTypes = preferedDeviceTypes ?? [.builtInWideAngleCamera, .continuityCamera]
         #else
@@ -345,6 +344,7 @@ public final class Camera: NSObject {
             position: position
         )
         return discoverySession.devices.first
+        #endif
     }
     
     internal func configureCaptureDevice(_ configure: @escaping (_ device: AVCaptureDevice) throws -> Void) {
